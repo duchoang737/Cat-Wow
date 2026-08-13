@@ -1,0 +1,1601 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Fluffy Cats — Idle Clicker</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#12141c; --panel:#1b1e2a; --panel2:#232736; --line:#333a4d;
+  --txt:#e6e9f2; --dim:#98a0b8; --gold:#ffc94a; --green:#4ade80; --red:#f87171;
+  --commoner:#9aa4bf; --clown:#e879f9; --soldier:#60a5fa; --noble:#c084fc; --knight:#34d399; --king:#fbbf24;
+}
+html,body{height:100%;font-family:"Segoe UI",system-ui,sans-serif;background:var(--bg);color:var(--txt);overflow:hidden}
+#app{display:flex;height:100vh}
+#left{flex:1;display:flex;flex-direction:column;min-width:0}
+.btn{background:var(--panel2);border:1px solid var(--line);color:var(--txt);padding:7px 12px;border-radius:7px;cursor:pointer;font-size:13px;white-space:nowrap}
+.btn:hover:not(:disabled){background:#2d3346;border-color:#4b5570}
+.btn:disabled{opacity:.4;cursor:not-allowed}
+.btn.buy{background:linear-gradient(#2f6b48,#1e4a30);border:1px solid #3d8a5c;color:#eafff2;text-shadow:0 1px 0 #0006}
+.btn.buy:hover:not(:disabled){background:linear-gradient(#38835a,#245c3c)}
+.btn.acc{background:#3a2d13;border-color:#7a5c1c;color:var(--gold)}
+/* ── vùng chơi + khung gỗ ── */
+#left{flex:1;display:flex;padding:16px;min-width:0}
+#stage{flex:1;position:relative;min-height:0;border-radius:12px;overflow:hidden;
+  box-shadow:0 0 0 3px #2a1f12,0 0 0 10px #6b4f2e,0 0 0 13px #3a2a18,inset 0 10px 30px #000a;
+  background:#1a140c}
+canvas#game{display:block;width:100%;height:100%;cursor:none}
+#coinHud{position:absolute;top:10px;right:18px;font:800 30px 'Segoe UI',system-ui,sans-serif;
+  color:#ffd23f;letter-spacing:1px;pointer-events:none;
+  text-shadow:2px 2px 0 #6b3d00,-2px 2px 0 #6b3d00,2px -2px 0 #6b3d00,-2px -2px 0 #6b3d00,0 3px 0 #3a2000,3px 3px 6px #000a;
+  font-variant-numeric:tabular-nums}
+#coinHud .cur{color:#ffb020;margin-left:2px}
+.stagebtn{position:absolute;top:12px;left:12px;width:40px;height:40px;font-size:19px;
+  background:linear-gradient(#3a2c17,#28200f);border:2px solid #7a5c1c;border-radius:9px;color:#ffd23f;cursor:pointer;box-shadow:0 2px 6px #0007}
+.stagebtn:hover{background:#4a3820}
+#warn{position:absolute;top:14px;left:50%;transform:translateX(-50%);background:#7f1d1d;border:1px solid #ef4444;padding:6px 16px;border-radius:8px;font-weight:600;font-size:14px;display:none;pointer-events:none}
+#toasts{position:absolute;bottom:14px;left:14px;display:flex;flex-direction:column-reverse;gap:5px;pointer-events:none}
+.toast{background:#000a;border:1px solid var(--line);padding:5px 11px;border-radius:6px;font-size:12px}
+/* ── panel phải ── */
+#right{width:346px;background:linear-gradient(#20232f,#171a24);border-left:1px solid #000;display:flex;flex-direction:column;padding:10px 10px 8px;gap:8px}
+#tabbar{display:flex;gap:8px;justify-content:center}
+.tabb{width:66px;height:60px;padding:0;background:linear-gradient(#3a2c17,#241a0d);border:3px solid #6b4f2e;border-radius:12px;cursor:pointer;box-shadow:0 2px 5px #0007;display:flex;align-items:center;justify-content:center;transition:transform .08s}
+.tabb img{width:38px;height:38px;image-rendering:pixelated;filter:saturate(.85) brightness(.8)}
+.tabb:hover{transform:translateY(-2px)}
+.tabb.on{border-color:#ffc94a;background:linear-gradient(#5a4320,#3a2a13);box-shadow:0 0 12px #ffc94a55,0 2px 5px #0007}
+.tabb.on img{filter:none}
+#tabtitle{display:flex;align-items:center;justify-content:center;gap:12px;color:#ffd23f;font-size:15px;font-weight:700;text-shadow:0 2px 3px #000}
+#tabtitle .fl{color:#c99a3a;font-size:20px}
+#tabtitle .fl.fr{transform:scaleX(-1)}
+#listframe{flex:1;min-height:0;border:3px solid #c99a3a;border-radius:12px;padding:5px;
+  background:linear-gradient(#161922,#10131b);box-shadow:0 0 0 2px #6b4f1e,inset 0 0 20px #0008;overflow:hidden;display:flex}
+#list{flex:1;overflow-y:auto;padding:5px 6px 5px 4px}
+.reincbtn{padding:12px;background:linear-gradient(#b8342e,#8a201c);border:3px solid #d9564a;border-radius:11px;
+  color:#ffe9e6;font-size:15px;font-weight:700;cursor:pointer;text-shadow:0 1px 2px #0007;box-shadow:0 3px 8px #0006,inset 0 1px 0 #ffffff2a}
+.reincbtn:hover{background:linear-gradient(#c94039,#9a2823)}
+.reincbtn.hot{animation:reincpulse 1.1s ease-in-out infinite}
+@keyframes reincpulse{0%,100%{box-shadow:0 3px 8px #0006,0 0 0 0 #ffd23f00}50%{box-shadow:0 3px 8px #0006,0 0 16px 2px #ffd23faa}}
+#botbar{display:flex;gap:8px;justify-content:center;padding:7px;border:3px solid #6b4f2e;border-radius:12px;background:linear-gradient(#20232f,#141722)}
+.botb{width:52px;height:40px;padding:0;background:linear-gradient(#2a2f3e,#1c202c);border:2px solid #3a4152;border-radius:9px;cursor:pointer;display:flex;align-items:center;justify-content:center}
+.botb img{width:26px;height:26px;image-rendering:pixelated;object-fit:contain}
+.botb:hover{background:#333a4d}
+.row{background:var(--panel2);border:1px solid var(--line);border-radius:8px;padding:8px 10px;margin-bottom:7px}
+.row.locked{opacity:.45}
+.rowhead{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:5px}
+.rowhead b{font-size:13px}
+.lv{font-size:11px;color:var(--dim);font-variant-numeric:tabular-nums}
+.rowdes{font-size:11px;color:var(--dim);margin-bottom:6px;line-height:1.4}
+.rowfoot{display:flex;gap:6px;align-items:center}
+.rowfoot .btn{flex:1;text-align:center;font-size:12px;padding:5px}
+.dot{width:9px;height:9px;border-radius:50%;display:inline-block;margin-right:6px;vertical-align:-1px}
+.ov{position:fixed;inset:0;background:#0b0d13f2;display:none;z-index:20;flex-direction:column}
+.ov.on{display:flex}
+.ovhead{display:flex;align-items:center;gap:12px;padding:12px 18px;border-bottom:1px solid var(--line);background:var(--panel)}
+.ovhead h2{font-size:17px;flex:1}
+.ovbody{flex:1;overflow:auto;padding:18px;position:relative}
+#treeCv{display:block;width:100%;height:100%;cursor:grab}
+#treeWrap{position:absolute;inset:0}
+#treeTip{position:absolute;background:#0f1219;border:1px solid var(--line);border-radius:8px;padding:9px 12px;font-size:12px;max-width:260px;pointer-events:none;display:none;z-index:5;line-height:1.5}
+#treeTip b{color:var(--gold);display:block;margin-bottom:3px}
+.maps{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:14px}
+.mapc{background:var(--panel2);border:1px solid var(--line);border-radius:10px;padding:14px}
+.mapc h3{font-size:15px;margin-bottom:5px}
+.mapc p{font-size:12px;color:var(--dim);min-height:34px;line-height:1.4}
+.setrow{display:flex;align-items:center;gap:12px;margin-bottom:14px;max-width:460px}
+.setrow label{flex:1;font-size:13px}
+.setrow input[type=range]{width:150px}
+kbd{background:var(--panel2);border:1px solid var(--line);border-radius:4px;padding:1px 6px;font-size:11px}
+.uicon{width:24px;height:24px;object-fit:contain;image-rendering:pixelated;vertical-align:-7px;margin-right:8px}
+#tabs button img{width:22px;height:22px;image-rendering:pixelated;vertical-align:-5px;margin-right:6px}
+.btn .bico{width:17px;height:17px;image-rendering:pixelated;vertical-align:-4px;margin-right:5px}
+.coinico{width:15px;height:15px;image-rendering:pixelated;vertical-align:-3px;margin:0 3px}
+.doc{max-width:760px;font-size:13px;line-height:1.75;color:var(--dim)}
+.doc h3{color:var(--txt);font-size:15px;margin:18px 0 7px}
+.doc b{color:var(--txt)}
+.doc ul{padding-left:20px}
+@media(max-width:900px){#right{width:290px}}
+</style>
+</head>
+<body>
+<div id="app">
+  <div id="left">
+    <div id="stage">
+      <canvas id="game"></canvas>
+      <div id="coinHud"><span id="hudCoin">0</span><span class="cur">$</span></div>
+      <button id="bMap" class="stagebtn" title="Bản đồ">🗺️</button>
+      <div id="warn"></div>
+      <div id="toasts"></div>
+    </div>
+  </div>
+  <div id="right">
+    <div id="tabbar">
+      <button data-tab="items" class="tabb on" title="Đơn vị"><img data-ui="btn_shop"></button>
+      <button data-tab="upg" class="tabb" title="Nâng cấp"><img data-ui="btn_upgrade"></button>
+      <button data-tab="info" class="tabb" title="Thông tin"><img data-ui="btn_info"></button>
+    </div>
+    <div id="tabtitle"><span class="fl">❧</span><span id="tabName">Vật phẩm</span><span class="fl fr">❧</span></div>
+    <div id="listframe"><div id="list"></div></div>
+    <button id="bReinc" class="reincbtn"><span data-t="tree">Cây kỹ năng</span> (<span id="reincN">0</span>)</button>
+    <div id="botbar">
+      <button id="bSteam" class="botb" title="Steam / Nguồn"><img data-ui="steam"></button>
+      <button id="bInfo" class="botb" title="Giới thiệu"><img data-ui="cup"></button>
+      <button id="bSet" class="botb" title="Cài đặt"><img data-ui="btn_setting"></button>
+    </div>
+  </div>
+</div>
+
+<div class="ov" id="ovTree">
+  <div class="ovhead">
+    <h2 data-t="tree">Cây kỹ năng</h2>
+    <span id="treePts" style="color:#a78bfa;font-weight:600"></span>
+    <div style="flex:1;max-width:300px">
+      <div id="tpTreeNum" style="font-size:11px;color:var(--dim);text-align:center;margin-bottom:3px"></div>
+      <div style="height:8px;background:#0d0f16;border-radius:5px;overflow:hidden;border:1px solid var(--line)"><div id="tpTreeFill" style="height:100%;width:0;background:linear-gradient(90deg,#22d3ee,#a78bfa)"></div></div>
+    </div>
+    <button class="btn acc" id="bRebirth">♻️ <span data-t="rebirth">Chuyển sinh</span></button>
+    <button class="btn" id="bTreeClose">✕</button>
+  </div>
+  <div class="ovbody" style="padding:0"><div id="treeWrap"><canvas id="treeCv"></canvas><div id="treeTip"></div></div></div>
+</div>
+
+<div class="ov" id="ovMap">
+  <div class="ovhead"><h2 data-t="selmap">Chọn bản đồ</h2><button class="btn" id="bMapClose" style="margin-left:auto">✕</button></div>
+  <div class="ovbody"><div class="maps" id="mapList"></div></div>
+</div>
+
+<div class="ov" id="ovSet">
+  <div class="ovhead"><h2 data-t="settings">Cài đặt</h2><button class="btn" id="bSetClose" style="margin-left:auto">✕</button></div>
+  <div class="ovbody">
+    <div class="setrow"><label data-t="lang">Ngôn ngữ</label><button class="btn" id="bLang">Tiếng Việt</button></div>
+    <div class="setrow"><label data-t="shake">Rung màn hình</label><input type="checkbox" id="cShake" checked></div>
+    <div class="setrow"><label data-t="hideMoney">Ẩn hiển thị tiền</label><input type="checkbox" id="cHide"></div>
+    <div class="setrow"><label data-t="cursor">Kích thước con trỏ</label><input type="range" id="rCursor" min="20" max="90" value="45"></div>
+    <div class="setrow"><label data-t="demoLock">Khoá bản demo (giữ nguyên như bản gốc)</label><input type="checkbox" id="cDemo" checked></div>
+    <div class="setrow" style="margin-top:26px"><label style="color:var(--red)" data-t="resetQ">Bạn có chắc muốn Đặt lại tiến trình?</label><button class="btn" id="bReset" style="border-color:#7f1d1d;color:var(--red)" data-t="reset">Đặt lại tiến trình</button></div>
+  </div>
+</div>
+
+<div class="ov" id="ovDoc">
+  <div class="ovhead"><h2>Về game</h2><button class="btn" id="bDocClose" style="margin-left:auto">✕</button></div>
+  <div class="ovbody"><div class="doc" id="docBody"></div></div>
+</div>
+
+<script src="cat_assets.js?v=12"></script>
+<script>
+"use strict";
+/* ══════════════════════════════════════════════════════════════════════════
+   FLUFFY CATS — Idle Clicker (bản public)
+   Art: mèo/chó CC0 (LuizMelo), chuột free (Micax); lông/robot/nền/code tự làm.
+   Không dùng asset của bất kỳ game thương mại nào.
+   ══════════════════════════════════════════════════════════════════════════ */
+
+/* ─────────────────────────── 1. BẢNG SỐ GỐC ─────────────────────────── */
+
+// DefaultValues — 59 hằng số gốc (chỉ giữ cái được dùng)
+const BASE = {
+  Commoner:1, Clown:30, Soldier:1000, Noble:20000, Knight:300000, King:5000000,
+  giftCd:60, lightningCd:13, rocketCd:13,
+  chainChance:1, chainPercent:0.1, chainRadius:1,
+  auraCount:0, auraRadius:1, auraDuration:30,
+  animalEnergy:25, animalSize:0, animalReward:0, animalRewardBonus:2,
+  collectorRadius:1, collectorSpeed:1,
+  thiefAppear:180, luckyFall:0.25, luckyFallMult:5,
+  goldenPunchIdle:30, goldenPunchDur:5,
+};
+
+const TIERS = ["Commoner","Clown","Soldier","Noble","Knight","King"];
+const TIER_COL = {Commoner:"#9aa4bf",Clown:"#e879f9",Soldier:"#60a5fa",Noble:"#c084fc",Knight:"#34d399",King:"#fbbf24"};
+
+// ShopItemTable — thang giá mua đơn vị (List<long> đọc từ binary)
+const SHOP = [
+  {k:"Commoner", cat:"human", p:[4,6,10,16,26,42,67,107,172,275,440,704,1126,1801,2882,4612,7379,11806,18889,30223,48357,96714,193428,386856,773713,1547425,3094850,6189700,12379400,24758801,49517602,99035203,198070406,396140813,792281625,1584563250,3169126501,6338253001,12676506002,25353012005,50706024009,101412048018,202824096037,405648192073,811296384146,1622592768292,3245185536584,6490371073169,12980742146337,25961484292674]},
+  {k:"Clown", cat:"human", p:[200,340,578,983,1670,2840,4828,8207,13952,23718,40320,68544,116524,198092,336756,572485,1144969,2289938,4579877,9159754,18319508,36639015,73278030,146556060,293112120,586224241,1172448482,2344896964,4689793928,9379587855,18759175710,46897939276,107865260335,248090098770,570607227170,1312396622492,3018512231731,6942578132981,15967929705857,36726238323471]},
+  {k:"Soldier", cat:"human", p:[10000,18000,32400,58320,104976,188957,340122,612220,1224440,2448880,4897760,9795521,19591041,39182082,78364164,156728328,313456656,626913313,1253826626,3009183901,7823878143,20342083173,52889416249,137512482247,357532453843,929584379993,2416919387981,6283990408750,16338375062750,42479775163150]},
+  {k:"Noble", cat:"human", p:[150000,330000,726000,1597200,3513840,8784600,21961500,54903750,137259375,343148438,857871094,2573613281,7720839844,23162519531,69487558594,208462675781,625388027344,2814246123047,12664107553711,56988483991699]},
+  {k:"Knight", cat:"human", p:[2250000,6750000,20250000,81000000,324000000,1620000000,8100000000,72900000000,583200000000,8164800000000]},
+  {k:"King", cat:"human", p:[33750000,337500000,5062500000,101250000000,3543750000000]},
+  // 3 thang dưới: set {Bull, Elephant, Collector} chắc chắn, thứ tự suy từ giá + điều kiện mở khoá
+  {k:"Bull", cat:"animal", p:[10,50,250,1250,6250,43750,306250,2143750,19293750,173643750,1562793750,14065143750,126586293750,1139276643750]},
+  {k:"Elephant", cat:"animal", req:"Tree_Elephant_Unlock", p:[5000,35000,245000,1715000,13720000,109760000,878080000,7902720000,71124480000,640120320000,5761082880000]},
+  {k:"Collector", cat:"collector", p:[50,750,22750,1000000,10000000]},
+];
+
+// UpgradeTable — [giá, giá trị] theo level; entry cuối giá 0 = đã max
+const UPG = {
+  Commoner_BaseValue:[[20,0],[34,1],[58,3],[100,5],[171,8],[292,12],[500,18],[855,24],[1462,33],[2500,45],[4276,61],[7311,84],[12502,115],[21379,157],[36557,215],[62513,293],[106898,401],[182795,549],[312579,751],[534510,1027],[914013,1404],[1562962,1920],[2672664,2626],[4570256,3591],[7815138,4912],[13363886,6717],[22852245,9187],[39077338,12564],[66822249,17183],[114266045,23501],[195394938,32140],[334125343,43956],[571354337,60116],[977015916,82217],[1670697216,112444],[2856892240,153782],[4885285730,210318],[8353838599,287640],[14285064004,393387],[24427459446,538011],[41770955653,735804],[71428334167,1006314],[122142451426,1376273],[208863591939,1882244],[357156742215,2574229],[610738029188,3520613],[1044362029912,4814925],[1785859071150,6585075],[3053819011667,9006000],[5222030509950,12316950],[0,16845132]],
+  Commoner_ValueBonus:[[700,0],[4200,.2],[25200,.4],[151200,.6],[907200,.8],[5443200,1],[65318400,1.2],[783820800,1.4],[9405849600,1.6],[112870195200,1.8],[0,2]],
+  Commoner_Clumsy:[[5000,0],[50000,.05],[500000,.1],[5000000,.15],[50000000,.2],[0,.25]],
+  Clown_BaseValue:[[1250,0],[2213,40],[3916,80],[6932,140],[12269,200],[21716,279],[38437,393],[68034,551],[120419,773],[213142,1086],[377262,1524],[667753,2140],[1181923,3005],[2092004,4219],[3702847,5924],[6554039,8317],[11600649,11678],[20533148,16396],[36343672,23020],[64328300,32321],[113861091,45380],[201534131,63715],[356715412,89458],[631386278,125602],[1117553713,176349],[1978070071,247600],[3501184027,347639],[6197095727,488096],[10968859437,685303],[19414881203,962187],[34364339729,1350942],[60824881321,1896766],[107660039938,2663120],[190558270690,3739106],[337288139121,5249826],[597000006244,7370924],[1056690011051,10349015],[1870341319560,14530350],[3310504135622,20401080],[5859592320051,28643772],[0,40216776]],
+  Clown_ValueBonus:[[12500,0],[62500,.2],[312500,.4],[1562500,.6],[7812500,.8],[62500000,1],[500000000,1.2],[4000000000,1.4],[32000000000,1.6],[256000000000,1.8],[0,2]],
+  Clown_Clumsy:[[15000,0],[150000,.05],[1500000,.1],[15000000,.15],[150000000,.2],[0,.25]],
+  Soldier_BaseValue:[[50000,0],[96000,1500],[184320,4000],[353894,8000],[679477,13500],[1304596,21000],[2504825,27945],[4809264,39645],[9233787,54748],[17728870,76459],[34039431,106278],[65355707,148017],[125482958,205979],[240927280,286736],[462580377,399099],[888154325,555527],[1705256304,773247],[3274092103,1076306],[6286256837,1498138],[12069613128,2085300],[23173657205,2902585],[44493421834,4040186],[85427369922,5623644],[164020550250,7827703],[314919456480,10895591],[604645356442,15165868],[1160919084368,21109782],[2228964641987,29383276],[4279612112615,40899376],[8216855256221,56928952],[0,79240944]],
+  Soldier_ValueBonus:[[75000,0],[412500,.2],[2268750,.4],[12478125,.6],[68629688,.8],[377463281,1],[2076048047,1.2],[11418264258,1.4],[62800453418,1.6],[345402493799,1.8],[0,2]],
+  Soldier_Clumsy:[[275000,0],[2750000,.05],[27500000,.1],[275000000,.15],[2750000000,.2],[0,.25]],
+  Noble_BaseValue:[[750000,0],[1800000,12000],[4320000,30000],[10368000,55000],[24883200,87450],[59719680,139046],[143327232,221082],[343985357,351521],[825564856,558918],[1981355655,888680],[4755253572,1413001],[11412608574,2246672],[27390260577,3572209],[65736625385,5679812],[157767900924,8974102],[378642962217,14179082],[908743109321,22402948],[2180983462370,35396660],[5234360309688,55926720],[12562464743252,88364224],[0,139615472]],
+  Noble_ValueBonus:[[375000,0],[1875000,.2],[9375000,.4],[46875000,.6],[234375000,.8],[1875000000,1],[15000000000,1.2],[120000000000,1.4],[960000000000,1.6],[7680000000000,1.8],[0,2]],
+  Noble_Clumsy:[[3000000,0],[30000000,.05],[300000000,.1],[3000000000,.15],[30000000000,.2],[0,.25]],
+  Knight_BaseValue:[[10000000,0],[50000000,450000],[250000000,990000],[1250000000,2178000],[6250000000,4791600],[31250000000,10541520],[156250000000,23191344],[781250000000,51020956],[3906250000000,112246104],[19531250000000,246941424],[0,543271168]],
+  Knight_ValueBonus:[[5000000,0],[25000000,.2],[125000000,.4],[625000000,.6],[3125000000,.8],[15625000000,1],[78125000000,1.2],[390625000000,1.4],[1953125000000,1.6],[9765625000000,1.8],[0,2]],
+  Knight_Clumsy:[[30000000,0],[300000000,.05],[3000000000,.1],[30000000000,.15],[300000000000,.2],[0,.25]],
+  King_BaseValue:[[300000000,0],[4500000000,10000000],[67500000000,30000000],[1012500000000,90000000],[15187500000000,270000000],[0,810000000]],
+  King_ValueBonus:[[7500000,0],[36000000,.2],[172800000,.4],[829440000,.6],[3981312000,.8],[19110297600,1],[91729428480,1.2],[440301256704,1.4],[2113446032179,1.6],[10144540954460,1.8],[0,2]],
+  King_Clumsy:[[300000000,0],[3000000000,.05],[30000000000,.1],[300000000000,.15],[3000000000000,.2],[0,.25]],
+  // Giá trị max gốc là -999 (placeholder chưa điền của dev) → thay bằng 100 để giữ chuỗi 0..90 liền mạch
+  Bull_Energy:[[50,0],[250,10],[1250,20],[6250,30],[31250,40],[156250,50],[781250,60],[3906250,70],[19531250,80],[97656250,90],[0,100]],
+  Bull_Size:[[12500,0],[125000,.05],[1250000,.1],[12500000,.15],[125000000,.2],[0,.25]],
+  Elephant_Energy:[[50,0],[250,10],[1250,20],[6250,30],[31250,40],[156250,50],[781250,60],[3906250,70],[19531250,80],[97656250,90],[0,100]],
+  Elephant_Size:[[12500,0],[125000,.05],[1250000,.1],[12500000,.15],[125000000,.2],[0,.25]],
+  Collector_Radius:[[20000,0],[200000,.2],[2000000,.4],[20000000,.6],[200000000,.8],[0,1]],
+  Collector_Speed:[[10000,0],[100000,.2],[1000000,.4],[10000000,.6],[100000000,.8],[0,1]],
+};
+
+// TreePointData.requireCoin — 36 mốc
+const TREE_REQ = [4000,50000,500000,2500000,10000000,40000000,100000000,250000000,625000000,1562500000,3906250000,7812500000,15625000000,26562500000,45156250000,76765625000,130501562500,221852656250,377149515625,641154176563,1089962100156,1852935570266,3149990469452,5354983798068,9103472456715,13655208685073,20482813027609,30724219541413,46086329312120,69129493968180,103694240952269,155541361428404,217757905999766,304861068399672,426805495759541,597527694063358];
+
+// MapDatabase
+const MAPS = [
+  {i:0,k:"Map1",price:0,demo:false},
+  {i:1,k:"Map2",price:10000000,demo:true},
+  {i:2,k:"Map3",price:1000000000,demo:true},
+  {i:3,k:"Map4",price:100000000000,demo:true},
+];
+
+// SkillTreeContainer — 36 node, toạ độ lưới 400 đơn vị, ROOT ở (0,0), mọi node giá 1 điểm.
+// Điều kiện mở = có ô kề trực giao đã mở (khớp với save thật của người chơi).
+const TREE = [
+  {i:0, k:"Tree_GoldenAura_count",       v:1,   x:-2,y:0},
+  {i:1, k:"Tree_LuckyThief_count",       v:1,   x:-1,y:0},
+  {i:2, k:"Tree_Noble_Unlock",           v:1,   x:1, y:0},
+  {i:3, k:"Tree_Gift_Unlock",            v:1,   x:0, y:1},
+  {i:4, k:"Tree_Knight_Unlock",          v:1,   x:2, y:0},
+  {i:5, k:"Tree_Elephant_Unlock",        v:1,   x:3, y:0,  demo:1},
+  {i:6, k:"Tree_King_Unlock",            v:1,   x:4, y:0},
+  {i:7, k:"Tree_Lightning_Unlock",       v:1,   x:-3,y:0,  demo:1},
+  {i:8, k:"Tree_Animal_Reward",          v:0.5, x:-2,y:1,  pct:1},
+  {i:9, k:"Tree_ChainReaction_Unlock",   v:1,   x:0, y:-2},
+  {i:10,k:"Tree_First_Time_Gift",        v:1,   x:-1,y:-3, demo:1},
+  {i:11,k:"Tree_Golden_Punch",           v:1,   x:1, y:-3, demo:1},
+  {i:12,k:"Tree_Rocket_cooldown",        v:-5,  x:-4,y:-1},
+  {i:13,k:"Tree_Lightning_cooldown",     v:-5,  x:-3,y:1},
+  {i:14,k:"Tree_Rocket_cooldown",        v:-5,  x:-4,y:1},
+  {i:15,k:"Tree_Rocket_Unlock",          v:1,   x:-4,y:0},
+  {i:16,k:"Tree_Inheritance",            v:1,   x:0, y:-3, demo:1},
+  {i:17,k:"Tree_AutoBreaker_Unlock",     v:1,   x:0, y:-1},
+  {i:18,k:"Tree_LuckyFall_Unlock",       v:1,   x:-1,y:2},
+  {i:19,k:"Tree_Guardian_Count",         v:1,   x:0, y:2,  demo:1},
+  {i:20,k:"Tree_Noble_value",            v:1.5, x:3, y:-1, pct:1},
+  {i:21,k:"Tree_Soldier_value",          v:1.5, x:3, y:1,  pct:1},
+  {i:22,k:"Tree_Commoner_value",         v:1.5, x:2, y:1,  pct:1},
+  {i:23,k:"Tree_Knight_value",           v:1.5, x:4, y:1,  pct:1},
+  {i:24,k:"Tree_Clown_value",            v:1.5, x:2, y:-1, pct:1},
+  {i:25,k:"Tree_LuckyThief_count",       v:1,   x:-1,y:3},
+  {i:26,k:"Tree_Lightning_cooldown",     v:-5,  x:-3,y:-1},
+  {i:27,k:"Tree_King_value",             v:1.5, x:4, y:-1, pct:1},
+  {i:28,k:"Tree_GoldenAura_radius",      v:0.5, x:-2,y:-1, pct:1},
+  {i:29,k:"Tree_ChainReaction_radius",   v:0.5, x:1, y:-2, pct:1},
+  {i:30,k:"Tree_Guardian_Count",         v:2,   x:0, y:3},
+  {i:31,k:"Tree_GoldenAura_count",       v:1,   x:1, y:2},
+  {i:32,k:"Tree_ChainReaction_Percent",  v:0.1, x:-1,y:-2, pct:1},
+  {i:33,k:"Tree_Animal_Reward_Bonus",    v:1,   x:1, y:3,  pct:1},
+  {i:34,k:"Tree_Collector_Lucky",        v:0.02,x:0, y:4,  pct:1},
+  {i:35,k:"Tree_Collector_Lucky",        v:0.02,x:0, y:-4, pct:1},
+];
+
+/* ─────────────────────────── 2. NGÔN NGỮ ─────────────────────────── */
+const L = {
+  vi:{
+    coin:"Tiền", total:"Tổng kiếm", points:"Điểm", tree:"Cây kỹ năng", map:"Bản đồ",
+    tabItems:"Vật phẩm", tabUpg:"Nâng cấp", tabInfo:"Thông tin", rebirth:"Chuyển sinh",
+    selmap:"Chọn bản đồ", settings:"Cài đặt", lang:"Ngôn ngữ", themeLbl:"Giao diện", shake:"Rung màn hình",
+    hideMoney:"Ẩn hiển thị tiền", cursor:"Kích thước con trỏ", reset:"Đặt lại tiến trình",
+    resetQ:"Bạn có chắc muốn Đặt lại tiến trình?", demoLock:"Khoá bản demo (giữ nguyên như bản gốc)",
+    max:"Tối đa", buy:"Mua", pointLeft:"còn {0} điểm", collect:"Kiếm {0}/{1} để nhận 1 điểm",
+    bossWarn:"Boss Fight: giá trị Human −50%", bossWarnCat:"Boss Fight: giá trị Cat −50%", demoNode:"Không có trong bản demo",
+    reincDes:"Chuyển sinh để áp dụng nâng cấp mới", unlocked:"[ĐÃ MỞ]",
+    requireMap:"Kiếm ${0} để mở khóa.", lv:"Lv",
+    Map1:"Bản đồ cơ bản", Map2:"Vườn Quý Tộc", Map3:"Chợ Vàng", Map4:"Triều đình",
+    Map1_Des:"Không có", Map2_Des:"Bắt đầu màn chơi với 1 Quý Tộc",
+    Map3_Des:"Người bị ngã có 2% cơ hội nhận số xu gấp 10 lần.", Map4_Des:"Bắt đầu trò chơi với 1 Vua.",
+    Commoner:"Dân Thường", Clown:"Chú Hề", Soldier:"Lính", Noble:"Quý Tộc", Knight:"Hiệp Sĩ", King:"Vua",
+    Bull:"Bò Tót", Elephant:"Voi", Collector:"Máy Nhặt",
+    BaseValue:"{0} rơi ra +{1}$", ValueBonus:"Giá trị {0} +{1}%", Clumsy:"Mỗi 10s, {0} có {1}% tự ngã",
+    Energy:"Thời lượng {0} +{1}s", Size:"Kích thước {0} +{1}%",
+    Radius:"Bán kính thu hoạch +{0}%", Speed:"Tốc độ di chuyển +{0}%",
+    rebirthQ:"Chuyển sinh sẽ reset tiền, đơn vị và nâng cấp. Điểm kỹ năng được giữ. Tiếp tục?",
+    resetC:"Xoá toàn bộ tiến trình?", thiefKill:"Hạ Thief! Human +400% trong 30s",
+    giftGot:"Quà: +{0}", jackpot:"JACKPOT x10!", bossDown:"Hạ Boss!",
+  },
+  en:{
+    coin:"Coin", total:"Total earned", points:"Points", tree:"Skill Tree", map:"Map",
+    tabItems:"Items", tabUpg:"Upgrade", tabInfo:"Information", rebirth:"Reincarnation",
+    selmap:"Select Map", settings:"Settings", lang:"Language", themeLbl:"Theme", shake:"Screen Shake",
+    hideMoney:"Hide Money Label", cursor:"Cursor Size", reset:"Reset Progress",
+    resetQ:"Are you sure to Reset Progress?", demoLock:"Demo locks (as in original build)",
+    max:"Max", buy:"Buy", pointLeft:"{0} point remaining", collect:"Collect {0}/{1} to earn 1 point",
+    bossWarn:"Boss Fight: Human Value -50%", bossWarnCat:"Boss Fight: Cat Value -50%", demoNode:"Not available in demo",
+    reincDes:"Reincarnate to apply new upgrades", unlocked:"[UNLOCKED]",
+    requireMap:"Earn ${0} to unlock.", lv:"Lv",
+    Map1:"Basic Map", Map2:"Noble Garden", Map3:"Golden Market", Map4:"King Court",
+    Map1_Des:"Nothing", Map2_Des:"Start the level with 1 Noble!",
+    Map3_Des:"The person who falls has a 2% chance of receiving 10 times the coins.", Map4_Des:"Start the game with 1 King.",
+    Commoner:"Commoner", Clown:"Clown", Soldier:"Soldier", Noble:"Noble", Knight:"Knight", King:"King",
+    Bull:"Bull", Elephant:"Elephant", Collector:"Collector",
+    BaseValue:"{0} drops +{1}$", ValueBonus:"{0} drop value +{1}%", Clumsy:"Every 10s, {0} has a {1}% chance to fall",
+    Energy:"{0} duration +{1}s", Size:"{0} size +{1}%",
+    Radius:"Harvest range +{0}%", Speed:"Movement speed +{0}%",
+    rebirthQ:"Reincarnation resets coins, units and upgrades. Skill points are kept. Continue?",
+    resetC:"Erase all progress?", thiefKill:"Thief down! Human +400% for 30s",
+    giftGot:"Gift: +{0}", jackpot:"JACKPOT x10!", bossDown:"Boss down!",
+  }
+};
+// Mô tả node cây — nguyên văn từ bảng localization của bản gốc
+const NODE_DES = {
+  vi:{
+    Tree_GoldenAura_count:"Human ngã trong Golden Aura nhận thêm 200% giá trị.",
+    Tree_GoldenAura_radius:"Tăng phạm vi Golden Aura.",
+    Tree_LuckyThief_count:"Hạ Thief giúp Human tăng 400% giá trị trong 30 giây.",
+    Tree_Noble_Unlock:"Mở khóa Quý Tộc.", Tree_Knight_Unlock:"Mở khóa Hiệp Sĩ.",
+    Tree_King_Unlock:"Mở khóa Vua.", Tree_Elephant_Unlock:"Mở khóa Voi.",
+    Tree_Gift_Unlock:"Quà sẽ cho phần thưởng ngẫu nhiên khi mở.",
+    Tree_Lightning_Unlock:"Lightning tự kích hoạt sau một khoảng thời gian.",
+    Tree_Lightning_cooldown:"Giảm thời gian kích hoạt Lightning.",
+    Tree_Rocket_Unlock:"Meteorite tự kích hoạt sau một khoảng thời gian.",
+    Tree_Rocket_cooldown:"Giảm thời gian kích hoạt Meteorite.",
+    Tree_ChainReaction_Unlock:"Khi một Human ngã, có cơ hội làm Human gần đó ngã theo.",
+    Tree_ChainReaction_Percent:"Tăng tỉ lệ kích hoạt dây chuyền.",
+    Tree_ChainReaction_radius:"Tăng bán kính dây chuyền.",
+    Tree_AutoBreaker_Unlock:"Mở khóa Auto Breaker — tự động đấm.",
+    Tree_LuckyFall_Unlock:"Khi Human ngã, có 25% cơ hội nhận thêm 400% giá trị.",
+    Tree_Animal_Reward:"Động vật giúp con người nhận ra giá trị của bản thân.",
+    Tree_Animal_Reward_Bonus:"Động vật giúp con người nhận ra giá trị của bản thân.",
+    Tree_Collector_Lucky:"Coin do Collector nhặt có cơ hội nhận x10 giá trị.",
+    Tree_Guardian_Count:"Bắt đầu mỗi phiên với thêm 1 Guardian.",
+    Tree_First_Time_Gift:"Bắt đầu game với 1 Commoner, 1 Clown, 1 Noble và 1 Soldier.",
+    Tree_Inheritance:"Khi Chuyển sinh, giữ lại 5% số tiền trước đó.",
+    Tree_Golden_Punch:"Không dùng Breaker làm ngã Human trong 30 giây → kích hoạt Nắm Đấm Vàng 5 giây, nhận x5 tiền.",
+    Tree_Commoner_value:"Dân Thường nhận thêm giá trị khi ngã.",
+    Tree_Clown_value:"Chú Hề nhận thêm giá trị khi ngã.",
+    Tree_Soldier_value:"Lính nhận thêm giá trị khi ngã.",
+    Tree_Noble_value:"Quý Tộc nhận thêm giá trị khi ngã.",
+    Tree_Knight_value:"Hiệp Sĩ nhận thêm giá trị khi ngã.",
+    Tree_King_value:"Vua nhận thêm giá trị khi ngã.",
+  },
+  en:{
+    Tree_GoldenAura_count:"Humans who fall in GoldenAura receive an additional 200% value.",
+    Tree_GoldenAura_radius:"Increase the range of Golden Aura.",
+    Tree_LuckyThief_count:"Defeating the thief will grant you an additional 400% Human value for 30 seconds.",
+    Tree_Noble_Unlock:"Unlock Noble.", Tree_Knight_Unlock:"Unlock Knight.",
+    Tree_King_Unlock:"Unlock King.", Tree_Elephant_Unlock:"Unlock Elephant.",
+    Tree_Gift_Unlock:"Gift will give a random gift when opened.",
+    Tree_Lightning_Unlock:"Lightning will automatically activate after a period of time.",
+    Tree_Lightning_cooldown:"Reduce the time it takes to activate Lightning.",
+    Tree_Rocket_Unlock:"Meteorite will automatically activate after a certain period of time.",
+    Tree_Rocket_cooldown:"Reduce the duration of each Meteorite activation.",
+    Tree_ChainReaction_Unlock:"When a human falls, there's a chance they'll cause another human nearby to fall.",
+    Tree_ChainReaction_Percent:"Increase Chain Reaction activation rate.",
+    Tree_ChainReaction_radius:"Increase the scope of Chain Reactions.",
+    Tree_AutoBreaker_Unlock:"Unlock Auto Breaker.",
+    Tree_LuckyFall_Unlock:"When a Human falls, there's a 25% chance they'll receive an additional 400% of their value.",
+    Tree_Animal_Reward:"Animals help humans realize their value.",
+    Tree_Animal_Reward_Bonus:"Animals help humans realize their value.",
+    Tree_Collector_Lucky:"Coins collected by the Collector have a chance to receive 10 times their value.",
+    Tree_Guardian_Count:"Start each game session with an additional Guardian.",
+    Tree_First_Time_Gift:"Start the game with 1 Commoner, 1 Clown, 1 Noble, and 1 Soldier.",
+    Tree_Inheritance:"When you undergo Rebirth, retain 5% of the funds you had before the Rebirth.",
+    Tree_Golden_Punch:"Do not use Breaker to knock down Human for 30 seconds, activate Golden Punch to receive x5 gold for 5 seconds.",
+    Tree_Commoner_value:"Commoner gains additional value when they fall.",
+    Tree_Clown_value:"Clowns gain extra value when they fall.",
+    Tree_Soldier_value:"Soldier gains extra value when they fall.",
+    Tree_Noble_value:"Noble gives extra value when you fall.",
+    Tree_Knight_value:"Knight gains extra value when he falls.",
+    Tree_King_value:"King gains extra value when he falls.",
+  }
+};
+let lang = "vi";
+const t = (k,...a)=>{ let s=(L[lang][k]!==undefined?L[lang][k]:k); a.forEach((v,i)=>s=s.replace("{"+i+"}",v)); return s; };
+
+/* ─────────────────────────── 3. TIỆN ÍCH ─────────────────────────── */
+const SUF = ["","K","M","B","T","Qa","Qi","Sx","Sp","Oc","No","Dc","Ud","Dd"];
+function fmt(n){
+  if(!isFinite(n)) return "∞";
+  if(n<0) return "-"+fmt(-n);
+  if(n<1000) return (n<10&&n%1!==0)?n.toFixed(1):Math.floor(n).toString();
+  let e=Math.floor(Math.log10(n)/3); e=Math.min(e,SUF.length-1);
+  const m=n/Math.pow(1000,e);
+  return (m<10?m.toFixed(2):m<100?m.toFixed(1):Math.floor(m))+SUF[e];
+}
+const rnd=(a,b)=>a+Math.random()*(b-a);
+const rint=(a,b)=>Math.floor(rnd(a,b+1));
+const clamp=(v,a,b)=>v<a?a:v>b?b:v;
+const dist2=(a,b,c,d)=>{const x=a-c,y=b-d;return x*x+y*y;};
+
+/* ─────────────────────────── 4. TRẠNG THÁI ─────────────────────────── */
+const DEF_STATE = ()=>({
+  coin:0, totalCoin:0, mapIndex:0, mapsOwned:[0],
+  treeExp:0, treeLevel:0, treePoint:0,
+  itemLv:{},        // key -> level (số đơn vị đã mua)
+  upgLv:{},         // key -> level
+  nodes:[],         // index node đã mở
+  playtime:0, rebirths:0,
+  set:{shake:false, hideMoney:false, cursor:45, demo:true, lang:"vi", theme:"cat", themeChosen:false, shakeChosen:false},
+});
+let S = DEF_STATE();
+
+const SAVE_KEY="ipp_web_save_v1";
+function save(){ try{ localStorage.setItem(SAVE_KEY, JSON.stringify(S)); }catch(e){} }
+function load(){
+  // ?reset -> xoá sạch tiến trình, chơi lại từ đầu
+  if(location.search.indexOf("reset")>=0){ try{localStorage.removeItem(SAVE_KEY);}catch(e){} S=DEF_STATE(); lang=S.set.lang; }
+  try{
+    const r=localStorage.getItem(SAVE_KEY);
+    if(r){ const o=JSON.parse(r); S=Object.assign(DEF_STATE(),o); S.set=Object.assign(DEF_STATE().set,o.set||{}); lang=S.set.lang||"vi"; }
+  }catch(e){}
+  // migrate save cũ sang theme Mèo 1 lần (giữ toggle về sau)
+  if(!S.set.themeChosen){ S.set.theme="cat"; S.set.themeChosen=true; }
+  // tắt rung 1 lần cho save cũ (vẫn bật lại được trong Cài đặt)
+  if(!S.set.shakeChosen){ S.set.shake=false; S.set.shakeChosen=true; }
+  // override qua URL: ?human hoặc ?cat
+  if(location.search.indexOf("human")>=0) S.set.theme="human";
+  if(location.search.indexOf("cat")>=0) S.set.theme="cat";
+}
+
+/* ── truy vấn tiến trình ── */
+const itemLv = k=>S.itemLv[k]||0;
+const upgLv  = k=>S.upgLv[k]||0;
+const upgVal = k=>{ const tb=UPG[k]; if(!tb) return 0; return tb[Math.min(upgLv(k),tb.length-1)][1]; };
+const upgPrice=k=>{ const tb=UPG[k]; const l=upgLv(k); return (l>=tb.length-1)?null:tb[l][0]; };
+const shopPrice=s=>{ const l=itemLv(s.k); return l>=s.p.length?null:s.p[l]; };
+
+function nodeOpen(i){ return S.nodes.includes(i); }
+function treeSum(key){ let s=0; for(const n of TREE) if(n.k===key && nodeOpen(n.i)) s+=n.v; return s; }
+function treeHas(key){ return treeSum(key)>0; }
+function tierMult(tier){ const v=treeSum("Tree_"+tier+"_value"); return v>0?v:1; }
+
+/* ── điều kiện mở node: có ô kề trực giao đã mở (ROOT ở (0,0) luôn mở) ── */
+function nodeAt(x,y){ return TREE.find(n=>n.x===x&&n.y===y); }
+function canUnlock(n){
+  if(nodeOpen(n.i)) return false;
+  if(S.set.demo && n.demo) return false;
+  const nb=[[1,0],[-1,0],[0,1],[0,-1]];
+  for(const [dx,dy] of nb){
+    const x=n.x+dx, y=n.y+dy;
+    if(x===0&&y===0) return true;               // kề ROOT
+    const m=nodeAt(x,y); if(m && nodeOpen(m.i)) return true;
+  }
+  return false;
+}
+function nodeVisible(n){
+  if(nodeOpen(n.i)) return true;
+  const nb=[[1,0],[-1,0],[0,1],[0,-1]];
+  for(const [dx,dy] of nb){
+    const x=n.x+dx,y=n.y+dy;
+    if(x===0&&y===0) return true;
+    const m=nodeAt(x,y); if(m&&nodeOpen(m.i)) return true;
+  }
+  return false;
+}
+// gỡ node: chỉ cho gỡ nếu không làm đứt nhánh (DFS lại từ ROOT)
+function canLock(n){
+  if(!nodeOpen(n.i)) return false;
+  const rest=S.nodes.filter(i=>i!==n.i);
+  const seen=new Set(); const st=[[0,0]];
+  while(st.length){
+    const [x,y]=st.pop();
+    for(const [dx,dy] of [[1,0],[-1,0],[0,1],[0,-1]]){
+      const m=nodeAt(x+dx,y+dy);
+      if(m && rest.includes(m.i) && !seen.has(m.i)){ seen.add(m.i); st.push([m.x,m.y]); }
+    }
+  }
+  return seen.size===rest.length;
+}
+
+/* ── giá trị dẫn xuất ── */
+const G = {
+  get chainOn(){ return treeHas("Tree_ChainReaction_Unlock"); },
+  get chainPct(){ return BASE.chainPercent + treeSum("Tree_ChainReaction_Percent"); },
+  get chainRad(){ return (BASE.chainRadius + treeSum("Tree_ChainReaction_radius"))*90; },
+  get auraCount(){ return BASE.auraCount + treeSum("Tree_GoldenAura_count"); },
+  get auraRad(){ return (BASE.auraRadius + treeSum("Tree_GoldenAura_radius"))*95; },
+  get luckyFallOn(){ return treeHas("Tree_LuckyFall_Unlock"); },
+  get thiefCount(){ return BASE.animalReward*0 + treeSum("Tree_LuckyThief_count"); },
+  get lightningOn(){ return treeHas("Tree_Lightning_Unlock"); },
+  get lightningCd(){ return Math.max(2, BASE.lightningCd + treeSum("Tree_Lightning_cooldown")); },
+  get rocketOn(){ return treeHas("Tree_Rocket_Unlock"); },
+  get rocketCd(){ return Math.max(2, BASE.rocketCd + treeSum("Tree_Rocket_cooldown")); },
+  get giftOn(){ return treeHas("Tree_Gift_Unlock"); },
+  get autoBreaker(){ return treeHas("Tree_AutoBreaker_Unlock"); },
+  get goldenPunch(){ return treeHas("Tree_Golden_Punch"); },
+  get guardians(){ return treeSum("Tree_Guardian_Count"); },
+  get animalRewardChance(){ return BASE.animalReward + treeSum("Tree_Animal_Reward"); },
+  get animalRewardMult(){ return BASE.animalRewardBonus + treeSum("Tree_Animal_Reward_Bonus"); },
+  get collectorLucky(){ return treeSum("Tree_Collector_Lucky"); },
+  get firstTimeGift(){ return treeHas("Tree_First_Time_Gift"); },
+  get inheritance(){ return treeHas("Tree_Inheritance"); },
+  get x10Map(){ return S.mapIndex===2; },
+};
+function tierUnlocked(tier){
+  if(tier==="Commoner"||tier==="Clown"||tier==="Soldier") return true;
+  return treeHas("Tree_"+tier+"_Unlock");
+}
+function humanValue(tier){
+  let v = (BASE[tier] + upgVal(tier+"_BaseValue")) * (1+upgVal(tier+"_ValueBonus")) * tierMult(tier);
+  return v;
+}
+
+/* ─────────────────────────── 5. THẾ GIỚI ─────────────────────────── */
+const W=1280, H=760;                 // toạ độ thế giới
+const cv=document.getElementById("game"), cx=cv.getContext("2d");
+let view={s:1,ox:0,oy:0};
+function resize(){
+  const r=cv.parentElement.getBoundingClientRect();
+  cv.width=r.width*devicePixelRatio; cv.height=r.height*devicePixelRatio;
+  const s=Math.min(r.width/W, r.height/H);
+  view.s=s; view.ox=(r.width-W*s)/2; view.oy=(r.height-H*s)/2;
+}
+addEventListener("resize",resize);
+
+/* ── ảnh sprite gốc (bóc từ build Steam, nhúng base64 trong assets.js) ── */
+const IMG={}; let imgReady=0;
+(function(){
+  const A=window.ASSETS||{};
+  for(const k in A){ const im=new Image(); im.onload=()=>{IMG[k]._ok=true;imgReady++;}; im.src=A[k]; im._ok=false; IMG[k]=im; }
+})();
+const has=k=>IMG[k]&&IMG[k]._ok;
+// UI icons (nút, khung, coin, icon node) — dùng cho canvas + làm data URI cho CSS
+const UI=window.UI||{};
+const UIMG={};
+for(const k in UI){ const im=new Image(); im.src=UI[k]; im._ok=false; im.onload=()=>im._ok=true; UIMG[k]=im; }
+const uiHas=k=>UIMG[k]&&UIMG[k]._ok;
+const uiURL=k=>UI[k]||"";
+// ── theme MÈO: sprite tự vẽ (pixel-art gốc, không lấy từ game) ──
+const CAT=window.CAT||{}; const CATIMG={};
+for(const k in CAT){ const im=new Image(); im.src=CAT[k]; im._ok=false; im.onload=()=>im._ok=true; CATIMG[k]=im; }
+const catHas=k=>CATIMG[k]&&CATIMG[k]._ok;
+const isCat=()=>true;   // bản public: chỉ theme Mèo (asset CC0/tự vẽ)
+const CATNAME={
+  vi:{Commoner:"Mèo Hoang",Clown:"Mèo Tam Thể",Soldier:"Mèo Xám",Noble:"Mèo Đen",Knight:"Mèo Tuxedo",King:"Mèo Hoàng Gia",Bull:"Chó Becgie",Elephant:"Chó To",Collector:"Robot Hút Bụi"},
+  en:{Commoner:"Alley Cat",Clown:"Calico",Soldier:"Grey Tabby",Noble:"Black Cat",Knight:"Tuxedo",King:"Royal Cat",Bull:"Saint Bernard",Elephant:"Big Dog",Collector:"Vacuum Bot"}
+};
+const dispName=k=>{ if(isCat()&&CATNAME[lang]&&CATNAME[lang][k]) return CATNAME[lang][k]; return t(k); };
+const CATMAP={Commoner:1, Clown:3, Soldier:4, Noble:2, Knight:6, King:5}; // bậc -> mèo (King=trắng xù, Noble=đen)
+function catShopIcon(k){
+  if(!isCat()||!window.CAT) return null;
+  if(CATMAP[k]) return window.CAT["c"+CATMAP[k]+"_sit"];
+  if(k==="Bull"||k==="Elephant") return window.CAT["dog_sit"];
+  if(k==="Collector") return window.CAT["vac"];
+  return null;
+}
+let animClock=0;
+let CAT_INCOME_MULT=1.0;   // = giá trị mỗi cú ngã của bản GỐC (không nhân giảm) — chỉnh 0..1 nếu cần
+// lưới frame sheet nhân vật: 57×57, hàng 0=đứng(2), 1=đi(5), 2=ngủ(5), 3=ngã(6)
+const HF=57;
+const HROW={idle:{r:0,n:2,fps:2.5},walk:{r:1,n:5,fps:9},sleep:{r:2,n:5,fps:4},down:{r:3,n:6,fps:11}};
+function drawSheet(img,col,row,cw,ch,dx,dy,dw,dh,flip){
+  cx.save(); cx.translate(dx,dy); if(flip) cx.scale(-1,1);
+  cx.imageSmoothingEnabled=false;
+  cx.drawImage(img, col*cw, row*ch, cw, ch, -dw/2, -dh, dw, dh);
+  cx.restore();
+}
+
+let humans=[], animals=[], collectors=[], coins=[], labels=[], fx=[], guardians=[];
+let boss=null, thieves=[], gifts=[];
+let shake=0, mouse={x:-999,y:-999,down:false,moved:false};
+let buffThief=0, punchIdle=0, goldenPunch=0, cdLight=0, cdRocket=0, cdGift=0, cdThief=0, cdBoss=45, cdAuto=0;
+let auras=[];
+const MAXCOINS=700;
+
+function worldFromEvent(e){
+  const r=cv.getBoundingClientRect();
+  return {x:(e.clientX-r.left-view.ox)/view.s, y:(e.clientY-r.top-view.oy)/view.s};
+}
+
+/* ── Human ── */
+function mkHuman(tier,x,y){
+  return {tier, x:x!==undefined?x:rnd(60,W-60), y:y!==undefined?y:rnd(60,H-60),
+    tx:0,ty:0, spd:rnd(50,82), state:"walk", t:rnd(0,3), down:0, clumsy:rnd(0,10),
+    face:1, bob:rnd(0,6.28), golden:false, sleep:false, af:rnd(0,1), fr:0, nap:0, ph:rnd(0,50), jumpT:0};
+}
+function humAnimState(h){ return h.state==="down"?"down": h.sleep?"sleep": h.state==="walk"?"walk":"idle"; }
+function retargetHuman(h){
+  // phủ TOÀN màn: ưu tiên đích XA + chỗ ÍT ĐÔNG (để mèo tản ra mép/góc)
+  let best=null,bs=-1e9;
+  for(let i=0;i<6;i++){
+    const px=rnd(36,W-36), py=rnd(30,H-30);
+    let crowd=0; for(const o of humans) if(o!==h && dist2(px,py,o.x,o.y)<130*130) crowd++;
+    const far=Math.hypot(px-h.x,py-h.y);
+    const score=far - crowd*260;
+    if(score>bs){ bs=score; best={x:px,y:py}; }
+  }
+  h.tx=best.x; h.ty=best.y;
+}
+function knock(h, src){
+  if(h.state==="down"||h.sleep) return 0;
+  h.state="down"; h.down=isCat()?0.9:1.7; h.af=0; h.fr=0; h.nap=0;
+  if(isCat()) h.jumpT=0.62;                 // mèo bật nhảy HOẢNG HỐT khi bị tap
+  let v = humanValue(h.tier);
+  let lucky=false, jack=false;
+  if(G.luckyFallOn && Math.random()<BASE.luckyFall){ v*=BASE.luckyFallMult; lucky=true; }
+  if(h.golden) v*=3;
+  if(goldenPunch>0 && src==="click") v*=5;
+  if(buffThief>0) v*=5;
+  if((src==="bull"||src==="elephant") && Math.random()<G.animalRewardChance) v*=G.animalRewardMult;
+  if(boss) v*=0.5;
+  if(G.x10Map && Math.random()<0.02){ v*=10; jack=true; }
+  if(isCat()) v*=CAT_INCOME_MULT;     // giảm thu nhập theme Mèo
+  spawnCoins(h.x,h.y,v,lucky,jack);   // tap chỉ VĂNG LÔNG ra, KHÔNG cộng/hiện tiền
+  if(jack) toast(t("jackpot"));
+  if(src==="click"){ punchIdle=0; }
+  // Chain Reaction
+  if(G.chainOn && src!=="chain" && Math.random()<BASE.chainChance){
+    const r2=G.chainRad*G.chainRad;
+    for(const o of humans){
+      if(o===h||o.state==="down") continue;
+      if(dist2(o.x,o.y,h.x,h.y)<r2 && Math.random()<G.chainPct){
+        fx.push({k:"chain",x:h.x,y:h.y,x2:o.x,y2:o.y,t:.3});
+        setTimeout(()=>knock(o,"chain"),60);
+      }
+    }
+  }
+  return v;
+}
+
+/* ── Coin ── */
+function coinTier(v,maxV){
+  const r=v/Math.max(1,maxV);
+  return v>=maxV*0.6?2:v>=maxV*0.25?1:0;
+}
+function spawnCoins(x,y,total,lucky,jack){
+  // Mệnh giá lông: ≤1k = 1 cục kem, 2k = 2 cục kem, ≥3k = cục MÀU KHÁC (gộp, mệnh giá cao)
+  let n, tier;
+  if(total<=2000){ n=Math.max(1,Math.ceil(total/1000)); tier=0; }
+  else { tier = total>=1e6?2:1; n=clamp(Math.round(1+Math.log10(total/1000)*0.6),1,4); }
+  const per=total/n;
+  for(let i=0;i<n;i++){
+    if(coins.length>=MAXCOINS) coins.shift();          // RemoveOldestCoin
+    const a=rnd(0,6.283), sp=rnd(75,185);              // văng ra xa để rơi vãi trên đất
+    coins.push({x,y,vx:Math.cos(a)*sp,vy:Math.sin(a)*sp*0.6,z:rnd(12,26),vz:rnd(160,280),
+      v:per, tier, st:0, t:0, tx:0,ty:0, landed:false, settle:0, lucky:!!lucky, jack:!!jack});
+  }
+}
+function collectCoin(c, byCollector){
+  let v=c.v;
+  if(byCollector && Math.random()<G.collectorLucky){ v*=10; toast(t("jackpot")); }
+  S.coin+=v; S.totalCoin+=v; S.treeExp+=v;
+  if(!S.set.hideMoney) labels.push({x:c.x,y:c.y-c.z-8,v:v,t:0.85,lucky:c.lucky,jack:c.jack});  // +X hiện KHI NHẶT được lông
+  checkTreeLevel();
+}
+function checkTreeLevel(){
+  while(S.treeLevel<TREE_REQ.length && S.treeExp>=TREE_REQ[S.treeLevel]){
+    S.treeExp-=TREE_REQ[S.treeLevel];
+    S.treeLevel++; S.treePoint++;
+    toast("+1 "+t("points"));
+  }
+}
+
+/* ── hiệu ứng phụ trợ ── */
+function toast(msg){
+  const d=document.createElement("div"); d.className="toast"; d.textContent=msg;
+  document.getElementById("toasts").appendChild(d);
+  setTimeout(()=>d.remove(),2600);
+}
+function doShake(a){ if(S.set.shake) shake=Math.max(shake,a); }
+
+/* ── khởi tạo phiên ── */
+function startSession(){
+  humans=[];animals=[];collectors=[];coins=[];labels=[];fx=[];guardians=[];thieves=[];gifts=[];
+  boss=null; buffThief=0; goldenPunch=0; punchIdle=0;
+  cdLight=G.lightningCd; cdRocket=G.rocketCd; cdGift=BASE.giftCd; cdThief=BASE.thiefAppear; cdBoss=60; cdAuto=0;
+
+  // Human: 1 gốc + số đã mua trong shop
+  const spawn=(tier,n)=>{ for(let i=0;i<n;i++) humans.push(mkHuman(tier)); };
+  spawn("Commoner", 1+itemLv("Commoner"));
+  for(const tier of ["Clown","Soldier","Noble","Knight","King"]) spawn(tier, itemLv(tier));
+  // First Time Gift
+  if(G.firstTimeGift){ ["Commoner","Clown","Noble","Soldier"].forEach(x=>spawn(x,1)); }
+  // Hiệu ứng bản đồ
+  if(S.mapIndex===1) spawn("Noble",1);
+  if(S.mapIndex===3) spawn("King",1);
+
+  for(let i=0;i<itemLv("Bull");i++) animals.push(mkAnimal("Bull"));
+  for(let i=0;i<itemLv("Elephant");i++) animals.push(mkAnimal("Elephant"));
+  for(let i=0;i<itemLv("Collector");i++) collectors.push({x:rnd(100,W-100),y:rnd(100,H-100),tg:null});
+  for(let i=0;i<G.guardians;i++) guardians.push(mkGuardian());
+
+  // Golden Aura
+  auras=[]; for(let i=0;i<G.auraCount;i++) auras.push({x:rnd(160,W-160),y:rnd(160,H-160),t:BASE.auraDuration});
+  humans.forEach(retargetHuman);
+}
+function mkAnimal(kind){
+  const dur=BASE.animalEnergy+upgVal(kind+"_Energy");
+  return {kind,x:rnd(80,W-80),y:rnd(80,H-80),tx:0,ty:0,st:"patrol",t:0,cd:0,
+    energy:dur,max:dur,scale:1+upgVal(kind+"_Size"),face:1};
+}
+function mkGuardian(){ return {x:rnd(100,W-100),y:rnd(100,H-100),hp:100,max:100,cd:0}; }
+
+/* ─────────────────────────── 6. VÒNG LẶP ─────────────────────────── */
+let last=performance.now(), acc=0;
+function loop(now){
+  let dt=(now-last)/1000; last=now; dt=Math.min(dt,0.05);
+  update(dt); render();
+  requestAnimationFrame(loop);
+}
+function update(dt){
+  S.playtime+=dt; animClock+=dt;
+  if(shake>0) shake=Math.max(0,shake-dt*7);
+  if(buffThief>0) buffThief-=dt;
+  if(goldenPunch>0) goldenPunch-=dt;
+
+  // Golden Punch: không đấm trong 30s → x5 trong 5s
+  if(G.goldenPunch){
+    punchIdle+=dt;
+    if(punchIdle>=BASE.goldenPunchIdle && goldenPunch<=0){ goldenPunch=BASE.goldenPunchDur; punchIdle=0; toast("GOLDEN PUNCH x5"); }
+  }
+  // Auto Breaker
+  if(G.autoBreaker){
+    cdAuto-=dt;
+    if(cdAuto<=0){ cdAuto=0.55; const alive=humans.filter(h=>h.state!=="down"&&!h.sleep); if(alive.length){ const h=alive[rint(0,alive.length-1)]; knock(h,"auto"); fx.push({k:"punch",x:h.x,y:h.y,t:.25}); } }
+  }
+  // Lightning
+  if(G.lightningOn){ cdLight-=dt; if(cdLight<=0){ cdLight=G.lightningCd; castLightning(); } }
+  // Meteorite
+  if(G.rocketOn){ cdRocket-=dt; if(cdRocket<=0){ cdRocket=G.rocketCd; castRocket(); } }
+  // Gift
+  if(G.giftOn){ cdGift-=dt; if(cdGift<=0){ cdGift=BASE.giftCd; gifts.push({x:rnd(80,W-80),y:rnd(80,H-80),t:20}); } }
+  // Thief
+  if(G.thiefCount>0){ cdThief-=dt; if(cdThief<=0){ cdThief=BASE.thiefAppear; for(let i=0;i<G.thiefCount;i++) thieves.push({x:rnd(80,W-80),y:rnd(80,H-80),tx:0,ty:0,hp:3,t:25}); } }
+  // Boss
+  cdBoss-=dt;
+  if(!boss && cdBoss<=0){ spawnBoss(); }
+
+  updateHumans(dt); updateAnimals(dt); updateCollectors(dt);
+  updateCoins(dt); updateThieves(dt); updateGifts(dt); updateBoss(dt); updateGuardians(dt);
+
+  for(let i=labels.length-1;i>=0;i--){ labels[i].t-=dt; labels[i].y-=28*dt; if(labels[i].t<=0) labels.splice(i,1); }
+  for(let i=fx.length-1;i>=0;i--){ fx[i].t-=dt; if(fx[i].t<=0) fx.splice(i,1); }
+  for(let i=auras.length-1;i>=0;i--){ auras[i].t-=dt; if(auras[i].t<=0){ auras[i].x=rnd(160,W-160); auras[i].y=rnd(160,H-160); auras[i].t=BASE.auraDuration; } }
+
+  hudTick-=dt; if(hudTick<=0){ hudTick=0.1; updateHUD(); }
+  saveTick-=dt; if(saveTick<=0){ saveTick=5; save(); }
+  mouse.moved=false;   // reset cuối frame: chỉ nhặt khi con trỏ đang quét qua lông
+}
+let hudTick=0, saveTick=5;
+
+function updateHumans(dt){
+  const clumsyKey=t=>t+"_Clumsy";
+  for(const h of humans){
+    if(h.jumpT>0) h.jumpT-=dt;
+    // tiến frame animation cho mọi trạng thái
+    const as=HROW[humAnimState(h)]; h.af+=dt*as.fps;
+    if(humAnimState(h)==="down"){ h.fr=Math.min(as.n-1,Math.floor(h.af)); }
+    else h.fr=Math.floor(h.af)%as.n;
+    if(h.sleep) continue;
+    if(h.state==="down"){ h.down-=dt; if(h.down<=0){ h.state="walk"; retargetHuman(h);} continue; }
+    // Mèo: thỉnh thoảng nằm xuống ngủ
+    if(isCat()){
+      if(h.nap>0){ h.nap-=dt; h.bob=0; continue; }
+      if(h.state!=="down" && Math.random()<dt*0.03){ h.nap=rnd(3.5,7); h.state="idle"; continue; }
+    }
+    // Clumsy: mỗi 10s có x% tự ngã
+    h.clumsy+=dt;
+    if(h.clumsy>=10){ h.clumsy=0; const c=upgVal(clumsyKey(h.tier)); if(c>0&&Math.random()<c) { knock(h,"clumsy"); continue; } }
+    h.t-=dt;
+    if(h.t<=0){ h.t=rnd(2,5); if(Math.random()<0.25){h.state="idle";} else if(h.state==="idle"){h.state="walk";} }  // chỉ tạm dừng/đi tiếp
+    if(h.state==="walk"){
+      const dx=h.tx-h.x, dy=h.ty-h.y, d=Math.hypot(dx,dy);
+      if(d<8){ retargetHuman(h); } else { h.x+=dx/d*h.spd*dt; h.y+=dy/d*h.spd*dt; h.face=dx<0?-1:1; }  // đi HẲN tới đích rồi mới đổi
+    }
+    h.bob+=dt*7;
+    // Golden Aura
+    h.golden=false;
+    for(const a of auras) if(dist2(h.x,h.y,a.x,a.y)<G.auraRad*G.auraRad){ h.golden=true; break; }
+  }
+}
+function updateDog(a,dt){
+  if(a.dirx===undefined){ a.dirx=1; a.diry=0; a.st="rest"; a.t=rnd(0.5,2); }
+  if(a.st!=="rest"&&a.st!=="lie"&&a.st!=="windup"&&a.st!=="charge"){ a.st="rest"; a.t=rnd(0.8,2); }
+  if(a.st==="rest"||a.st==="lie"){
+    a.t-=dt;
+    if(a.t<=0){ // lấy đà
+      a.st="windup"; a.t=0.5;
+      a.tx=rnd(90,W-90); a.ty=rnd(90,H-90);
+      const dx=a.tx-a.x, dy=a.ty-a.y, d=Math.hypot(dx,dy)||1; a.dirx=dx/d; a.diry=dy/d; a.face=dx<0?-1:1;
+    }
+    return;
+  }
+  if(a.st==="windup"){
+    a.t-=dt; a.x-=a.dirx*26*dt; a.y-=a.diry*26*dt;   // lùi lại lấy đà
+    if(a.t<=0){ a.st="charge"; doShake(2); }
+    return;
+  }
+  if(a.st==="charge"){
+    const sp=(a.kind==="Elephant"?560:600);
+    a.x+=a.dirx*sp*dt; a.y+=a.diry*sp*dt;
+    const R=(a.kind==="Elephant"?86:70)*a.scale;
+    for(const h of humans) if(h.state!=="down"&&!h.sleep && dist2(h.x,h.y,a.x,a.y)<R*R){ knock(h,a.kind.toLowerCase()); }
+    if(dist2(a.x,a.y,a.tx,a.ty)<50*50 || a.x<44||a.x>W-44||a.y<44||a.y>H-44){
+      a.x=clamp(a.x,44,W-44); a.y=clamp(a.y,44,H-44); doShake(4);
+      // hồi lâu hơn; nâng cấp Energy sau này -> hồi nhanh lại
+      const em=1-Math.min(0.62, upgVal(a.kind+"_Energy")/170);
+      if(Math.random()<0.32){ a.st="lie"; a.t=rnd(6,10)*em; }   // đôi lúc nằm nghỉ lâu
+      else { a.st="rest"; a.t=rnd(3.2,6)*em; }
+    }
+    return;
+  }
+}
+function updateAnimals(dt){
+  for(const a of animals){
+    if(isCat()){ updateDog(a,dt); continue; }   // boss ra vẫn hoạt động bình thường
+    if(a.st==="sleep"){ a.t-=dt; if(a.t<=0){ a.st="patrol"; a.energy=a.max; } continue; }
+    a.energy-=dt;
+    if(a.energy<=0){ a.st="sleep"; a.t=8; continue; }
+    a.cd-=dt;
+    const dx=a.tx-a.x, dy=a.ty-a.y, d=Math.hypot(dx,dy);
+    if(d<12){ a.tx=rnd(60,W-60); a.ty=rnd(60,H-60); }
+    else { const sp=(a.kind==="Bull"?95:70); a.x+=dx/d*sp*dt; a.y+=dy/d*sp*dt; a.face=dx<0?-1:1; }
+    if(a.cd<=0){
+      const R=(a.kind==="Bull"?58:82)*a.scale;
+      let hit=false;
+      for(const h of humans) if(h.state!=="down" && dist2(h.x,h.y,a.x,a.y)<R*R){ knock(h,a.kind.toLowerCase()); hit=true; }
+      if(hit){ a.cd=1.1; fx.push({k:"aoe",x:a.x,y:a.y,r:R,t:.35}); doShake(3); }
+    }
+  }
+}
+function updateCollectors(dt){
+  const sp=64*(BASE.collectorSpeed+upgVal("Collector_Speed"));   // chạy chậm lại
+  const rad=34*(BASE.collectorRadius+upgVal("Collector_Radius"));
+  const taken=new Set();
+  for(const c of collectors){
+    // tách khỏi robot khác để không chồng/không đi cùng 1 đường
+    for(const o of collectors){ if(o===c) continue; const dx=c.x-o.x,dy=c.y-o.y,d2=dx*dx+dy*dy; if(d2<58*58 && d2>1){ const d=Math.sqrt(d2); c.x+=dx/d*46*dt; c.y+=dy/d*46*dt; } }
+    // mỗi robot nhắm cục lông GẦN NHẤT CHƯA bị robot khác nhận
+    let best=null,bd=1e9;
+    for(const co of coins){ if(co.st!==0||co.claim) continue; const d=dist2(c.x,c.y,co.x,co.y); if(d<bd){bd=d;best=co;} }
+    if(best){ best.claim=true; taken.add(best); const dx=best.x-c.x,dy=best.y-c.y,d=Math.hypot(dx,dy)||1; c.x+=dx/d*sp*dt; c.y+=dy/d*sp*dt; }
+    for(const co of coins) if(co.st===0 && co.landed && co.settle<=0 && dist2(c.x,c.y,co.x,co.y)<rad*rad){ co.st=1; co.tx=c.x; co.ty=c.y; co.by=1; }
+    c.r=rad;
+  }
+  for(const co of coins) co.claim=false;   // reset đặt chỗ mỗi frame
+}
+function updateCoins(dt){
+  const hov=52;
+  for(let i=coins.length-1;i>=0;i--){
+    const c=coins[i];
+    if(c.st===0){
+      c.x+=c.vx*dt; c.y+=c.vy*dt; c.vx*=0.93; c.vy*=0.93;
+      c.z+=c.vz*dt; c.vz-=420*dt;
+      if(c.z<0){ c.z=0; c.vz*=-0.42; if(!c.landed){ c.landed=true; c.settle=0.4; } if(Math.abs(c.vz)<25) c.vz=0; }   // chạm đất
+      if(c.settle>0) c.settle-=dt;                                          // nằm yên 1 nhịp mới nhặt được
+      c.x=clamp(c.x,8,W-8); c.y=clamp(c.y,8,H-8);
+      if(c.landed && c.settle<=0 && mouse.moved && mouse.x>-500 && dist2(c.x,c.y,mouse.x,mouse.y)<hov*hov){ c.st=1; c.by=0; }
+    } else {
+      c.t+=dt*3.4;
+      const tx=c.by?c.tx:mouse.x, ty=c.by?c.ty:mouse.y;
+      c.x+=(tx-c.x)*Math.min(1,dt*11); c.y+=(ty-c.y)*Math.min(1,dt*11); c.z*=0.9;
+      if(c.t>0.55 || dist2(c.x,c.y,tx,ty)<64){ collectCoin(c,c.by===1); coins.splice(i,1); }
+    }
+  }
+}
+function updateThieves(dt){
+  for(let i=thieves.length-1;i>=0;i--){
+    const th=thieves[i]; th.t-=dt;
+    const dx=th.tx-th.x, dy=th.ty-th.y, d=Math.hypot(dx,dy);
+    if(d<10){ th.tx=rnd(60,W-60); th.ty=rnd(60,H-60); } else { th.x+=dx/d*150*dt; th.y+=dy/d*150*dt; }
+    if(th.t<=0) thieves.splice(i,1);
+  }
+}
+function updateGifts(dt){ for(let i=gifts.length-1;i>=0;i--){ gifts[i].t-=dt; if(gifts[i].t<=0) gifts.splice(i,1); } }
+function updateGuardians(dt){
+  for(const g of guardians){
+    if(!boss) continue;
+    const dx=boss.x-g.x, dy=boss.y-g.y, d=Math.hypot(dx,dy)||1;
+    if(d>70){ g.x+=dx/d*90*dt; g.y+=dy/d*90*dt; }
+    else { g.cd-=dt; if(g.cd<=0){ g.cd=1; hitBoss(boss.max*0.02); } }
+  }
+}
+function spawnBoss(){
+  const mini=Math.random()<0.7;
+  const hp=(mini?12:30)*Math.max(1,Math.pow(1.7,S.treeLevel));
+  boss={x:W/2,y:H/2,ax:rnd(240,W-240),ay:rnd(180,H-180),hp:hp,max:hp,mini,block:0,blocked:false,t:0};
+  showWarn(true);   // boss ra: mèo vẫn hoạt động, chỉ giảm nửa tiền (xem knock)
+}
+function hitBoss(d){
+  if(!boss||boss.blocked) return;
+  boss.hp-=d; doShake(2);
+  fx.push({k:"hit",x:boss.x+rnd(-30,30),y:boss.y+rnd(-30,30),t:.25});
+  if(boss.hp<=0){
+    const reward=humanValue("Commoner")*32*(boss.mini?1:3);   // thưởng hạ boss (giảm so với trước)
+    spawnCoins(boss.x,boss.y,reward);
+    toast(t("bossDown"));
+    boss=null; humans.forEach(h=>{h.sleep=false;retargetHuman(h);});
+    cdBoss=boss?60:75; showWarn(false); doShake(8);
+  }
+}
+function updateBoss(dt){
+  if(!boss) return;
+  boss.t+=dt; boss.block-=dt;
+  if(boss.block<=0){ boss.blocked=!boss.blocked; boss.block=boss.blocked?1.5:4.5; }
+  boss.x=boss.ax+Math.cos(boss.t*0.7)*140; boss.y=boss.ay+Math.sin(boss.t*1.1)*80;
+}
+function castLightning(){
+  const alive=humans.filter(h=>h.state!=="down"&&!h.sleep); if(!alive.length) return;
+  const c=alive[rint(0,alive.length-1)];
+  fx.push({k:"light",x:c.x,y:c.y,t:.4});
+  for(const h of humans) if(dist2(h.x,h.y,c.x,c.y)<120*120) knock(h,"lightning");
+  doShake(6);
+}
+function castRocket(){
+  const x=rnd(120,W-120), y=rnd(120,H-120);
+  fx.push({k:"rocket",x,y,t:.55});
+  setTimeout(()=>{
+    for(const h of humans) if(dist2(h.x,h.y,x,y)<170*170) knock(h,"rocket");
+    fx.push({k:"aoe",x,y,r:170,t:.4}); doShake(11);
+  },320);
+}
+function openGift(g){
+  const roll=Math.random();
+  let v;
+  if(roll<0.6) v=humanValue("Commoner")*60;
+  else if(roll<0.9) v=humanValue("Commoner")*260;
+  else v=humanValue("Commoner")*1200;
+  spawnCoins(g.x,g.y,v); toast(t("giftGot",fmt(v)));
+}
+function showWarn(on){
+  const w=document.getElementById("warn");
+  w.style.display=on?"block":"none"; w.textContent=t(isCat()?"bossWarnCat":"bossWarn");
+}
+
+/* ─────────────────────────── 7. VẼ ─────────────────────────── */
+function render(){
+  cx.setTransform(devicePixelRatio,0,0,devicePixelRatio,0,0);
+  cx.clearRect(0,0,cv.width,cv.height);
+  cx.save();
+  const sx=shake>0?rnd(-shake,shake):0, sy=shake>0?rnd(-shake,shake):0;
+  cx.translate(view.ox+sx,view.oy+sy); cx.scale(view.s,view.s);
+
+  drawGround();
+  for(const a of auras) drawAura(a);
+  for(const f of fx) if(f.k==="chain") { cx.strokeStyle="#facc15aa"; cx.lineWidth=3; cx.beginPath(); cx.moveTo(f.x,f.y); cx.lineTo(f.x2,f.y2); cx.stroke(); }
+  for(const f of fx) if(f.k==="aoe"){ cx.strokeStyle="#fb923c"; cx.globalAlpha=f.t*2; cx.lineWidth=4; cx.beginPath(); cx.arc(f.x,f.y,f.r*(1.4-f.t),0,6.283); cx.stroke(); cx.globalAlpha=1; }
+
+  const order=[...humans.map(o=>({o,y:o.y,k:"h"})),...animals.map(o=>({o,y:o.y,k:"a"})),
+               ...collectors.map(o=>({o,y:o.y,k:"c"})),...guardians.map(o=>({o,y:o.y,k:"g"})),
+               ...thieves.map(o=>({o,y:o.y,k:"t"})),...gifts.map(o=>({o,y:o.y,k:"gi"}))];
+  if(boss) order.push({o:boss,y:boss.y,k:"b"});
+  order.sort((a,b)=>a.y-b.y);
+  for(const e of order){
+    if(e.k==="h") drawHuman(e.o); else if(e.k==="a") drawAnimal(e.o);
+    else if(e.k==="c") drawCollector(e.o); else if(e.k==="g") drawGuardian(e.o);
+    else if(e.k==="t") drawThief(e.o); else if(e.k==="gi") drawGift(e.o);
+    else if(e.k==="b") drawBoss(e.o);
+  }
+  for(const c of coins) drawCoin(c);
+  for(const f of fx) drawFx(f);
+  if(!S.set.hideMoney) for(const l of labels) drawLabel(l);
+  drawCursor();
+  cx.restore();
+}
+function drawGround(){
+  if(isCat()&&catHas("catbg")){ cx.imageSmoothingEnabled=false; cx.drawImage(CATIMG["catbg"],0,0,W,H); cx.fillStyle="#0b0d1330"; cx.fillRect(0,0,W,H); return; }
+  const bgk="bg"+S.mapIndex, img=IMG[bgk];
+  if(img&&img._ok){
+    cx.imageSmoothingEnabled=true;
+    cx.drawImage(img,0,0,W,H);
+    cx.fillStyle="#0b0d1355"; cx.fillRect(0,0,W,H);   // phủ tối nhẹ cho dễ nhìn nhân vật
+  } else {
+    const g=cx.createLinearGradient(0,0,0,H);
+    const pal=[["#1d2433","#141a26"],["#1f2b22","#141c17"],["#2b2416","#1c180f"],["#241c2e","#181120"]][S.mapIndex];
+    g.addColorStop(0,pal[0]); g.addColorStop(1,pal[1]);
+    cx.fillStyle=g; cx.fillRect(0,0,W,H);
+    cx.strokeStyle="#ffffff08"; cx.lineWidth=1;
+    for(let x=0;x<=W;x+=80){cx.beginPath();cx.moveTo(x,0);cx.lineTo(x,H);cx.stroke();}
+    for(let y=0;y<=H;y+=80){cx.beginPath();cx.moveTo(0,y);cx.lineTo(W,y);cx.stroke();}
+  }
+  cx.strokeStyle="#ffffff18"; cx.lineWidth=2; cx.strokeRect(1,1,W-2,H-2);
+}
+function drawAura(a){
+  const r=G.auraRad;
+  if(has("glow")){ cx.globalAlpha=.6; cx.imageSmoothingEnabled=true; cx.drawImage(IMG.glow,a.x-r,a.y-r,r*2,r*2); cx.globalAlpha=1; }
+  else { const g=cx.createRadialGradient(a.x,a.y,0,a.x,a.y,r); g.addColorStop(0,"#fbbf2438"); g.addColorStop(.75,"#fbbf2418"); g.addColorStop(1,"#fbbf2400"); cx.fillStyle=g; cx.beginPath(); cx.arc(a.x,a.y,r,0,6.283); cx.fill(); }
+  cx.strokeStyle="#fbbf2455"; cx.lineWidth=2; cx.beginPath(); cx.arc(a.x,a.y,r,0,6.283); cx.stroke();
+  if(has("sun")){ const s=26+Math.sin(performance.now()/500)*3; cx.imageSmoothingEnabled=false; cx.drawImage(IMG.sun,a.x-s/2,a.y-s/2,s,s); }
+}
+function shadow(x,y,r){ cx.fillStyle="#00000055"; cx.beginPath(); cx.ellipse(x,y+2,r,r*0.4,0,0,6.283); cx.fill(); }
+function drawHuman(h){
+  const down=h.state==="down";
+  // ── THEME MÈO ──
+  if(isCat()){ drawCat(h); return; }
+  shadow(h.x,h.y,down?14:8);
+  if(h.golden){ cx.strokeStyle="#fbbf24"; cx.lineWidth=2; cx.globalAlpha=.9; cx.beginPath(); cx.arc(h.x,h.y-16,18,0,6.283); cx.stroke(); cx.globalAlpha=1; }
+  const img=IMG["h_"+h.tier];
+  if(img&&img._ok){
+    const as=HROW[humAnimState(h)];
+    const S=1.35, dw=HF*S, dh=HF*S;
+    if(h.sleep) cx.globalAlpha=.55;
+    // frame ở đáy 57px căn vào chân (chừa ~6px viền dưới của cell)
+    drawSheet(img, h.fr, as.r, HF, HF, h.x, h.y+7, dw, dh, h.face<0);
+    cx.globalAlpha=1;
+    return;
+  }
+  // fallback vector
+  const c=TIER_COL[h.tier];
+  cx.save(); cx.translate(h.x,h.y); if(down) cx.rotate(1.35); if(h.sleep) cx.globalAlpha=0.4;
+  const bob=down?0:Math.sin(h.bob)*1.4;
+  cx.fillStyle=c; cx.beginPath(); cx.roundRect(-6,-22+bob,12,17,4); cx.fill();
+  cx.fillStyle="#f4d7b0"; cx.beginPath(); cx.arc(0,-27+bob,6,0,6.283); cx.fill();
+  cx.restore();
+}
+function drawCat(h){
+  const ci=CATMAP[h.tier]||1;
+  const napping=h.nap>0, reacting=h.state==="down";
+  let key,cnt,fps;
+  if(napping){ key="c"+ci+"_sleep"; cnt=2; fps=1.4; }
+  else if(reacting){ key="c"+ci+"_react"; cnt=2; fps=9; }
+  else if(h.state==="walk"){ key="c"+ci+"_walk"; cnt=4; fps=9; }
+  else { key="c"+ci+"_idle"; cnt=2; fps=2.5; }
+  const fi=Math.floor(animClock*fps + h.ph)%cnt;
+  let spr=CATIMG[key+fi]; if(!spr||!spr._ok) spr=CATIMG["c"+ci+"_sit"]||CATIMG["c"+ci+"_idle0"];
+  const ok=spr&&spr._ok;
+  const k=1.02;                                   // hệ số phóng to (nhỏ lại theo yêu cầu)
+  const dw=(ok?spr.naturalWidth:80)*k, dh=(ok?spr.naturalHeight:120)*k;
+  let jy=0, jp=0; if(h.jumpT>0){ jp=1-h.jumpT/0.62; jy=-Math.sin(Math.pow(jp,0.72)*Math.PI)*152; }   // bật CAO, vọt lên nhanh (hoảng hốt)
+  shadow(h.x,h.y,Math.max(12,dw*0.40*(1+jy/220)));       // bóng nhỏ hẳn khi bay cao
+  if(h.golden){ cx.strokeStyle="#fbbf24"; cx.lineWidth=3; cx.globalAlpha=.9; cx.beginPath(); cx.arc(h.x,h.y-dh*0.42+jy,dw*0.55,0,6.283); cx.stroke(); cx.globalAlpha=1; }
+  cx.save(); cx.imageSmoothingEnabled=false;
+  const rot = h.jumpT>0 ? Math.sin(jp*Math.PI)*0.18*h.face : 0;   // hơi lắc người khi hoảng
+  cx.translate(h.x, h.y-dh*0.5+8+jy); cx.rotate(rot); cx.translate(-h.x, -(h.y-dh*0.5+8+jy));
+  if(h.face<0){ cx.translate(h.x,0); cx.scale(-1,1); cx.translate(-h.x,0); }
+  if(ok) cx.drawImage(spr, h.x-dw/2, h.y-dh+8+jy, dw, dh);   // +jy = bật lên
+  cx.restore();
+  if(h.jumpT>0 && jp<0.7){ cx.fillStyle="#ff5a5a"; cx.strokeStyle="#3a0000"; cx.lineWidth=3; cx.font="bold 26px 'Segoe UI',sans-serif"; cx.textAlign="center"; cx.strokeText("!",h.x+dw*0.36,h.y-dh+jy-4); cx.fillText("!",h.x+dw*0.36,h.y-dh+jy-4); }
+  if(napping){
+    cx.fillStyle="#c9d4f0"; cx.font="bold 24px 'Segoe UI',sans-serif"; cx.textAlign="left";
+    const zt=animClock*1.2;
+    for(let i=0;i<3;i++){ cx.globalAlpha=0.5+0.5*Math.sin(zt-i); cx.fillText("z",h.x+dw*0.3+i*12,h.y-dh-i*16); }
+    cx.globalAlpha=1;
+  }
+}
+function drawDog(a){
+  const pre = a.kind==="Elephant" ? "gdane" : "dog";
+  let key,cnt,fps;
+  if(a.st==="charge"){ key=pre+"_run"; cnt=4; fps=14; }
+  else if(a.st==="windup"){ key=pre+"_sit"; cnt=1; fps=1; }
+  else if(a.st==="lie"){ key=pre+"_lie"; cnt=2; fps=1.1; }
+  else { key=pre+"_idle"; cnt=2; fps=2.3; }
+  const fi=Math.floor(animClock*fps)%cnt;
+  let spr=CATIMG[cnt>1?key+fi:key]; if(!spr||!spr._ok) spr=CATIMG[pre+"_idle0"]||CATIMG[pre+"_sit"];
+  const ok=spr&&spr._ok;
+  const k=(a.kind==="Elephant"?1.55:1.3)*a.scale;
+  const dw=(ok?spr.naturalWidth:120)*k, dh=(ok?spr.naturalHeight:90)*k;
+  shadow(a.x,a.y,Math.max(16,dw*0.42));
+  cx.save(); cx.imageSmoothingEnabled=false;
+  if(a.face<0){ cx.translate(a.x,0); cx.scale(-1,1); cx.translate(-a.x,0); }
+  if(ok) cx.drawImage(spr, a.x-dw/2, a.y-dh+8, dw, dh);
+  cx.restore();
+  if(a.st==="windup"){ // vệt lấy đà
+    cx.strokeStyle="#ffffff66"; cx.lineWidth=2;
+    for(let i=1;i<=3;i++){ cx.globalAlpha=.4/i; cx.beginPath(); cx.moveTo(a.x-a.dirx*10*i,a.y-8); cx.lineTo(a.x-a.dirx*22*i,a.y-8); cx.stroke(); }
+    cx.globalAlpha=1;
+  }
+}
+function drawAnimal(a){
+  if(isCat()){ drawDog(a); return; }
+  const big=a.kind==="Elephant";
+  const s=a.scale*(big?1.35:1);
+  shadow(a.x,a.y,20*s);
+  cx.save(); cx.translate(a.x,a.y); cx.scale(a.face*s,s);
+  if(a.st==="sleep") cx.globalAlpha=.45;
+  cx.fillStyle=big?"#94a3b8":"#7f1d1d";
+  cx.beginPath(); cx.roundRect(-22,-26,44,24,9); cx.fill();
+  cx.beginPath(); cx.arc(20,-20,10,0,6.283); cx.fill();
+  cx.fillStyle="#fff"; cx.beginPath(); cx.arc(23,-23,2,0,6.283); cx.fill();
+  if(!big){ cx.strokeStyle="#e5e7eb"; cx.lineWidth=3; cx.beginPath(); cx.moveTo(24,-27); cx.lineTo(31,-32); cx.stroke(); }
+  else { cx.strokeStyle="#94a3b8"; cx.lineWidth=5; cx.beginPath(); cx.moveTo(28,-16); cx.quadraticCurveTo(36,-8),cx.lineTo(33,-2); cx.stroke(); }
+  cx.restore();
+  // thanh energy
+  const w=40, p=clamp(a.energy/a.max,0,1);
+  cx.fillStyle="#0008"; cx.fillRect(a.x-w/2,a.y-46,w,4);
+  cx.fillStyle=p>.3?"#4ade80":"#f87171"; cx.fillRect(a.x-w/2,a.y-46,w*p,4);
+}
+function drawCollector(c){
+  shadow(c.x,c.y,isCat()?16:11);
+  cx.strokeStyle="#22d3ee33"; cx.lineWidth=1.5; cx.beginPath(); cx.arc(c.x,c.y,c.r||36,0,6.283); cx.stroke();
+  if(isCat()&&catHas("vac")){
+    const spr=CATIMG["vac"]; const dw=spr.naturalWidth*0.42, dh=spr.naturalHeight*0.42;
+    const rad=(c.r||36); let sucking=false;
+    // hạt gió bị hút từ lông về máy
+    for(const co of coins){ if(co.st!==0||!co.landed) continue; if(dist2(c.x,c.y,co.x,co.y)<rad*rad*1.7){ sucking=true;
+      const t=(animClock*2.3 + (Math.abs(co.x)%9)/9)%1;
+      const px=co.x+(c.x-co.x)*t, py=(co.y-4)+((c.y-8)-(co.y-4))*t;
+      cx.fillStyle="rgba(196,236,240,"+(0.7*(1-t)).toFixed(2)+")"; cx.beginPath(); cx.arc(px,py,2.2,0,6.283); cx.fill();
+    } }
+    cx.imageSmoothingEnabled=false; cx.drawImage(spr,c.x-dw/2,c.y-dh+10,dw,dh);
+    if(sucking){ // xoáy hút ở miệng máy
+      cx.strokeStyle="rgba(170,228,232,0.75)"; cx.lineWidth=2;
+      for(let k=0;k<3;k++){ const a0=animClock*7+k*2.1, rr=5+k*5; cx.beginPath(); cx.arc(c.x,c.y-4,rr,a0,a0+2.3); cx.stroke(); }
+    }
+    return;
+  }
+  if(has("collector")){ const s=30; cx.imageSmoothingEnabled=false; cx.drawImage(IMG.collector,c.x-s/2,c.y-s+2,s,s); return; }
+  cx.save(); cx.translate(c.x,c.y-14);
+  cx.fillStyle="#22d3ee"; cx.beginPath(); cx.roundRect(-9,-9,18,18,5); cx.fill();
+  cx.fillStyle="#0b1114"; cx.beginPath(); cx.arc(0,0,4,0,6.283); cx.fill();
+  cx.restore();
+}
+function drawGuardian(g){
+  shadow(g.x,g.y,10);
+  cx.fillStyle="#38bdf8"; cx.beginPath(); cx.roundRect(g.x-7,g.y-26,14,20,4); cx.fill();
+  cx.fillStyle="#e0f2fe"; cx.beginPath(); cx.arc(g.x,g.y-31,6,0,6.283); cx.fill();
+  cx.strokeStyle="#38bdf8"; cx.lineWidth=2; cx.beginPath(); cx.arc(g.x,g.y-18,15,0,6.283); cx.stroke();
+}
+function drawThief(th){
+  shadow(th.x,th.y,10);
+  const moving=(th.tx-th.x)*(th.tx-th.x)+(th.ty-th.y)*(th.ty-th.y)>100;
+  const img=moving&&has("thief_run")?IMG.thief_run:(has("thief")?IMG.thief:null);
+  if(img){ const fw=img.width/8, s=42, fr=Math.floor(performance.now()/90)%8, face=(th.tx<th.x)?-1:1;
+    cx.save(); cx.translate(th.x,th.y+6); if(face<0) cx.scale(-1,1); cx.imageSmoothingEnabled=false;
+    cx.drawImage(img,fr*fw,0,fw,img.height,-s/2,-s,s,s); cx.restore();
+    cx.fillStyle="#fbbf24"; cx.font="bold 12px sans-serif"; cx.textAlign="center"; cx.fillText("$",th.x,th.y-42);
+    return; }
+  cx.fillStyle="#1f2937"; cx.beginPath(); cx.roundRect(th.x-7,th.y-24,14,19,4); cx.fill();
+  cx.fillStyle="#111827"; cx.beginPath(); cx.arc(th.x,th.y-29,6,0,6.283); cx.fill();
+  cx.fillStyle="#fbbf24"; cx.fillRect(th.x-6,th.y-31,12,3);
+  cx.fillStyle="#fbbf24"; cx.font="bold 12px sans-serif"; cx.textAlign="center"; cx.fillText("$",th.x,th.y-38);
+}
+function drawGift(g){
+  const b=Math.sin(performance.now()/220)*3;
+  shadow(g.x,g.y,12);
+  cx.fillStyle="#ef4444"; cx.fillRect(g.x-11,g.y-24+b,22,20);
+  cx.fillStyle="#fbbf24"; cx.fillRect(g.x-2.5,g.y-24+b,5,20); cx.fillRect(g.x-11,g.y-16+b,22,4);
+}
+function drawBoss(b){
+  shadow(b.x,b.y,34);
+  if(isCat()){
+    const pre=b.mini?"ratmini":"ratboss";
+    const fi=Math.floor(animClock*7)%3;
+    let spr=CATIMG[pre+fi]; if(!spr||!spr._ok) spr=CATIMG[pre+"0"];
+    if(spr&&spr._ok){
+      const k=b.mini?1.35:2.05, dw=spr.naturalWidth*k, dh=spr.naturalHeight*k;
+      cx.save(); cx.imageSmoothingEnabled=false; if(b.blocked)cx.globalAlpha=.55;
+      cx.drawImage(spr, b.x-dw/2, b.y-dh+12, dw, dh); cx.restore();
+      if(b.blocked){ cx.strokeStyle="#93c5fd"; cx.lineWidth=3; cx.beginPath(); cx.arc(b.x,b.y-dh*0.4,dw*0.5,0,6.283); cx.stroke(); }
+      const w=Math.max(140,dw*0.8),p=clamp(b.hp/b.max,0,1), by=b.y-dh-6;
+      cx.fillStyle="#0009"; cx.fillRect(b.x-w/2,by,w,9); cx.fillStyle="#ef4444"; cx.fillRect(b.x-w/2,by,w*p,9); cx.strokeStyle="#fff3"; cx.lineWidth=1; cx.strokeRect(b.x-w/2,by,w,9);
+      return;
+    }
+  }
+  cx.save(); cx.translate(b.x,b.y);
+  cx.fillStyle=b.blocked?"#64748b":(b.mini?"#b91c1c":"#7f1d1d");
+  cx.beginPath(); cx.roundRect(-30,-70,60,62,12); cx.fill();
+  cx.fillStyle="#fca5a5"; cx.beginPath(); cx.arc(-11,-50,6,0,6.283); cx.arc(11,-50,6,0,6.283); cx.fill();
+  cx.fillStyle="#000"; cx.beginPath(); cx.arc(-11,-50,3,0,6.283); cx.arc(11,-50,3,0,6.283); cx.fill();
+  if(b.blocked){ cx.strokeStyle="#93c5fd"; cx.lineWidth=3; cx.beginPath(); cx.arc(0,-40,44,0,6.283); cx.stroke(); }
+  cx.restore();
+  const w=140,p=clamp(b.hp/b.max,0,1);
+  cx.fillStyle="#0009"; cx.fillRect(b.x-w/2,b.y-92,w,9);
+  cx.fillStyle="#ef4444"; cx.fillRect(b.x-w/2,b.y-92,w*p,9);
+  cx.strokeStyle="#fff3"; cx.lineWidth=1; cx.strokeRect(b.x-w/2,b.y-92,w,9);
+}
+const COIN_COL=[["#c98b4b","#e8b072"],["#9aa4bf","#d5dcef"],["#d19b1c","#ffd76a"]];
+const COIN_SPR=["coin_bronze","coin_silver","coin_gold"];
+function drawCoin(c){
+  cx.fillStyle="#00000044"; cx.beginPath(); cx.ellipse(c.x,c.y+1,5,2,0,0,6.283); cx.fill();
+  const y=c.y-c.z, spr=COIN_SPR[c.tier];
+  if(isCat()){ const spr=CATIMG["fur"+(c.tier||0)]||CATIMG["fur0"]||CATIMG["fur"]; if(spr&&spr._ok){ const s=c.tier>0?34:26; cx.imageSmoothingEnabled=false; cx.drawImage(spr,c.x-s/2,y-s/2,s,s); return; } }
+  if(uiHas(spr)){ const s=14; cx.imageSmoothingEnabled=false; cx.drawImage(UIMG[spr],c.x-s/2,y-s/2,s,s); return; }
+  const col=COIN_COL[c.tier];
+  cx.fillStyle=col[0]; cx.beginPath(); cx.arc(c.x,y,5.5,0,6.283); cx.fill();
+  cx.fillStyle=col[1]; cx.beginPath(); cx.arc(c.x-1,y-1,3.2,0,6.283); cx.fill();
+}
+function drawFx(f){
+  if(f.k==="punch"){ cx.strokeStyle="#fff"; cx.globalAlpha=f.t*4; cx.lineWidth=3; cx.beginPath(); cx.arc(f.x,f.y-16,26*(1.3-f.t*3),0,6.283); cx.stroke(); cx.globalAlpha=1; }
+  if(f.k==="hit"){ cx.fillStyle="#fca5a5"; cx.globalAlpha=f.t*4; cx.beginPath(); cx.arc(f.x,f.y,10,0,6.283); cx.fill(); cx.globalAlpha=1; }
+  if(f.k==="light"){ cx.strokeStyle="#a5f3fc"; cx.lineWidth=4; cx.globalAlpha=f.t*2.5;
+    cx.beginPath(); cx.moveTo(f.x,0); for(let i=1;i<7;i++) cx.lineTo(f.x+rnd(-22,22), f.y*i/6); cx.stroke();
+    cx.globalAlpha=1; }
+  if(f.k==="rocket"){ const p=1-f.t/0.55; cx.fillStyle="#fb923c"; cx.beginPath(); cx.arc(f.x,f.y-260*(1-p),9,0,6.283); cx.fill();
+    cx.strokeStyle="#fb923c88"; cx.lineWidth=2; cx.beginPath(); cx.arc(f.x,f.y,170,0,6.283); cx.stroke(); }
+}
+function drawLabel(l){
+  cx.font="bold 15px 'Segoe UI',sans-serif"; cx.textAlign="center";
+  cx.globalAlpha=clamp(l.t,0,1);
+  cx.lineWidth=3; cx.strokeStyle="#000a";
+  const s="+"+fmt(l.v)+(l.jack?" x10":l.lucky?" ★":"");
+  cx.strokeText(s,l.x,l.y); cx.fillStyle=l.jack?"#f472b6":l.lucky?"#4ade80":"#ffc94a";
+  cx.fillText(s,l.x,l.y); cx.globalAlpha=1;
+}
+function drawCursor(){
+  if(mouse.x<-500) return;
+  const r=S.set.cursor;
+  cx.strokeStyle=goldenPunch>0?"#fbbf24":"#ffffff55"; cx.lineWidth=goldenPunch>0?3:2;
+  cx.beginPath(); cx.arc(mouse.x,mouse.y,r/2,0,6.283); cx.stroke();
+  cx.beginPath(); cx.arc(mouse.x,mouse.y,3,0,6.283); cx.fillStyle=cx.strokeStyle; cx.fill();
+}
+
+/* ─────────────────────────── 8. INPUT ─────────────────────────── */
+cv.addEventListener("mousemove",e=>{const p=worldFromEvent(e);mouse.x=p.x;mouse.y=p.y;mouse.moved=true;});
+cv.addEventListener("mouseleave",()=>{mouse.x=-999;mouse.y=-999;});
+cv.addEventListener("mousedown",e=>{
+  const p=worldFromEvent(e);
+  // Gift
+  for(let i=gifts.length-1;i>=0;i--) if(dist2(p.x,p.y,gifts[i].x,gifts[i].y-14)<28*28){ openGift(gifts[i]); gifts.splice(i,1); return; }
+  // Thief
+  for(let i=thieves.length-1;i>=0;i--) if(dist2(p.x,p.y,thieves[i].x,thieves[i].y-20)<28*28){
+    if(--thieves[i].hp<=0){ thieves.splice(i,1); buffThief=30; toast(t("thiefKill")); doShake(6); }
+    return;
+  }
+  // Boss
+  const bossR=isCat()?78:52, bossY=isCat()?50:40;
+  if(boss && dist2(p.x,p.y,boss.x,boss.y-bossY)<bossR*bossR){ hitBoss(boss.max*0.035); return; }
+  // Human / Mèo — vùng chạm to hơn, canh giữa thân
+  const hitY=isCat()?66:20, hitR=isCat()?95:52;
+  let best=null,bd=hitR*hitR;
+  for(const h of humans){ if(h.state==="down"||h.sleep) continue; const d=dist2(p.x,p.y,h.x,h.y-hitY); if(d<bd){bd=d;best=h;} }
+  if(best){ knock(best,"click"); fx.push({k:"punch",x:best.x,y:best.y-(isCat()?40:0),t:.25}); doShake(2); }
+});
+
+/* ─────────────────────────── 9. GIAO DIỆN ─────────────────────────── */
+let tab="items";
+function updateHUD(){
+  document.getElementById("hudCoin").textContent=fmt(S.coin);
+  document.getElementById("reincN").textContent=S.treePoint;
+  const rb=document.getElementById("bReinc"); rb.classList.toggle("hot",S.treePoint>0);
+  // tiêu đề tab
+  document.getElementById("tabName").textContent = tab==="items"?t("tabItems"):tab==="upg"?t("tabUpg"):t("tabInfo");
+  // trong màn cây kỹ năng
+  const tps=document.getElementById("treePts"); if(tps) tps.textContent=t("pointLeft",S.treePoint);
+  const need=S.treeLevel<TREE_REQ.length?TREE_REQ[S.treeLevel]:null;
+  const tf=document.getElementById("tpTreeFill"); if(tf) tf.style.width=(need?clamp(S.treeExp/need,0,1)*100:100)+"%";
+  const tn=document.getElementById("tpTreeNum"); if(tn) tn.textContent=(need?t("collect",fmt(S.treeExp),fmt(need)):t("max"));
+  refreshList();
+}
+function refreshList(){
+  const box=document.getElementById("list");
+  if(box.dataset.tab!==tab){ box.dataset.tab=tab; box.innerHTML=""; }
+  if(tab==="items") renderItems(box);
+  else if(tab==="upg") renderUpg(box);
+  else renderInfo(box);
+}
+function rowEl(box,id){
+  let e=box.querySelector('[data-id="'+id+'"]');
+  if(!e){ e=document.createElement("div"); e.className="row"; e.dataset.id=id; box.appendChild(e); }
+  return e;
+}
+function buyItem(s){
+  const p=shopPrice(s); if(p===null||S.coin<p) return;
+  S.coin-=p; S.itemLv[s.k]=itemLv(s.k)+1;
+  if(s.cat==="human") humans.push(mkHuman(s.k));
+  else if(s.cat==="animal") animals.push(mkAnimal(s.k));
+  else collectors.push({x:rnd(100,W-100),y:rnd(100,H-100)});
+  humans.forEach(h=>{if(!h.tx)retargetHuman(h);});
+  updateHUD(); save();
+}
+function renderItems(box){
+  for(const s of SHOP){
+    const el=rowEl(box,"i_"+s.k);
+    const unlocked = s.cat==="human" ? tierUnlocked(s.k) : (s.req? treeHas(s.req) : true);
+    const price=shopPrice(s), lv=itemLv(s.k);
+    const val = s.cat==="human" ? humanValue(s.k) : null;
+    const afford = unlocked && price!==null && S.coin>=price;
+    const sig = lv+"|"+unlocked+"|"+afford+"|"+price+"|"+(val!==null?Math.round(val):0)+"|"+(isCat()?1:0);
+    if(el.dataset.sig===sig) continue;        // chỉ vẽ lại khi đổi -> nút không bị tạo mới liên tục
+    el.dataset.sig=sig;
+    el.classList.toggle("locked",!unlocked);
+    const icon=catShopIcon(s.k)||uiURL("u_"+s.k);
+    const badge = icon ? `<img class="uicon" src="${icon}">` : `<span class="dot" style="background:${TIER_COL[s.k]||"#22d3ee"}"></span>`;
+    el.innerHTML=`<div class="rowhead"><b>${badge}${dispName(s.k)}</b><span class="lv">${lv}${s.p.length?" / "+s.p.length:""}</span></div>
+      <div class="rowdes">${val!==null?("★ "+fmt(val)+" / lần ngã"):(s.cat==="animal"?("⏱ "+(BASE.animalEnergy+upgVal(s.k+"_Energy")).toFixed(0)+"s · ⬤ "+Math.round((1+upgVal(s.k+"_Size"))*100)+"%"):("◎ "+Math.round((BASE.collectorRadius+upgVal("Collector_Radius"))*100)+"%"))}</div>
+      <div class="rowfoot"><button class="btn buy" ${afford?"":"disabled"}>${price===null?t("max"):t("buy")+` ·`+fmt(price)}</button></div>`;
+    el.querySelector("button").onclick=()=>buyItem(s);
+  }
+}
+const UPG_GROUPS=[
+  {n:"Commoner",keys:["Commoner_BaseValue","Commoner_ValueBonus","Commoner_Clumsy"]},
+  {n:"Clown",keys:["Clown_BaseValue","Clown_ValueBonus","Clown_Clumsy"]},
+  {n:"Soldier",keys:["Soldier_BaseValue","Soldier_ValueBonus","Soldier_Clumsy"]},
+  {n:"Noble",keys:["Noble_BaseValue","Noble_ValueBonus","Noble_Clumsy"]},
+  {n:"Knight",keys:["Knight_BaseValue","Knight_ValueBonus","Knight_Clumsy"]},
+  {n:"King",keys:["King_BaseValue","King_ValueBonus","King_Clumsy"]},
+  {n:"Bull",keys:["Bull_Energy","Bull_Size"]},
+  {n:"Elephant",keys:["Elephant_Energy","Elephant_Size"]},
+  {n:"Collector",keys:["Collector_Radius","Collector_Speed"]},
+];
+function upgDes(key){
+  const [unit,kind]=key.split("_");
+  const tb=UPG[key], lv=upgLv(key);
+  const next=tb[Math.min(lv+1,tb.length-1)][1];
+  const nm=t(unit);
+  if(kind==="BaseValue") return t("BaseValue",nm,fmt(next));
+  if(kind==="ValueBonus") return t("ValueBonus",nm,Math.round(next*100));
+  if(kind==="Clumsy") return t("Clumsy",nm,Math.round(next*100));
+  if(kind==="Energy") return t("Energy",nm,next);
+  if(kind==="Size") return t("Size",nm,Math.round(next*100));
+  if(kind==="Radius") return t("Radius",Math.round(next*100));
+  if(kind==="Speed") return t("Speed",Math.round(next*100));
+  return key;
+}
+function renderUpg(box){
+  for(const g of UPG_GROUPS){
+    const unlocked = TIERS.includes(g.n) ? tierUnlocked(g.n) : (g.n==="Elephant"? treeHas("Tree_Elephant_Unlock") : true);
+    for(const key of g.keys){
+      const el=rowEl(box,"u_"+key);
+      const price=upgPrice(key), lv=upgLv(key), tb=UPG[key];
+      const afford = unlocked && price!==null && S.coin>=price;
+      const sig = lv+"|"+unlocked+"|"+afford+"|"+price+"|"+(isCat()?1:0);
+      if(el.dataset.sig===sig) continue;
+      el.dataset.sig=sig;
+      el.classList.toggle("locked",!unlocked);
+      const uic=catShopIcon(g.n)||uiURL("u_"+g.n);
+      const ubadge = uic ? `<img class="uicon" src="${uic}">` : `<span class="dot" style="background:${TIER_COL[g.n]||"#22d3ee"}"></span>`;
+      el.innerHTML=`<div class="rowhead"><b>${ubadge}${dispName(g.n)} · ${key.split("_")[1]}</b><span class="lv">${lv} / ${tb.length-1}</span></div>
+        <div class="rowdes">${upgDes(key)}</div>
+        <div class="rowfoot"><button class="btn buy" ${afford?"":"disabled"}>${price===null?t("max"):`·`+fmt(price)}</button></div>`;
+      el.querySelector("button").onclick=()=>{
+        const p=upgPrice(key); if(p===null||S.coin<p) return;
+        S.coin-=p; S.upgLv[key]=upgLv(key)+1;
+        if(key.startsWith("Bull")||key.startsWith("Elephant")) animals.forEach(a=>{ if(a.kind===key.split("_")[0]){ a.max=BASE.animalEnergy+upgVal(a.kind+"_Energy"); a.scale=1+upgVal(a.kind+"_Size"); } });
+        updateHUD(); save();
+      };
+    }
+  }
+}
+function renderInfo(box){
+  const el=rowEl(box,"info");
+  const active=[];
+  if(G.chainOn) active.push("Chain Reaction "+Math.round(G.chainPct*100)+"% · r"+Math.round(G.chainRad));
+  if(G.auraCount>0) active.push("Golden Aura ×"+G.auraCount+" · r"+Math.round(G.auraRad));
+  if(G.luckyFallOn) active.push("Lucky Fall 25% → ×5");
+  if(G.thiefCount>0) active.push("Lucky Thief ×"+G.thiefCount);
+  if(G.lightningOn) active.push("Lightning "+G.lightningCd+"s");
+  if(G.rocketOn) active.push("Meteorite "+G.rocketCd+"s");
+  if(G.giftOn) active.push("Gift "+BASE.giftCd+"s");
+  if(G.autoBreaker) active.push("Auto Breaker");
+  if(G.goldenPunch) active.push("Golden Punch ×5");
+  if(G.guardians>0) active.push("Guardian ×"+G.guardians);
+  if(G.collectorLucky>0) active.push("Collector Lucky "+(G.collectorLucky*100).toFixed(0)+"%");
+  if(G.animalRewardChance>0) active.push("Animal Reward "+Math.round(G.animalRewardChance*100)+"% ×"+G.animalRewardMult);
+  if(G.inheritance) active.push("Inheritance 5%");
+  el.innerHTML=`<div class="rowhead"><b>${t("tabInfo")}</b></div>
+  <div class="rowdes" style="line-height:1.9">
+    ${TIERS.map(x=>`<span class="dot" style="background:${TIER_COL[x]}"></span>${t(x)}: <b style="color:var(--gold)">${tierUnlocked(x)?fmt(humanValue(x)):"🔒"}</b>`).join("<br>")}
+    <hr style="border:0;border-top:1px solid var(--line);margin:9px 0">
+    ${active.length?active.map(a=>"• "+a).join("<br>"):"—"}
+    <hr style="border:0;border-top:1px solid var(--line);margin:9px 0">
+    Human: ${humans.length} · Coin: ${coins.length}/${MAXCOINS}<br>
+    ${t("rebirth")}: ${S.rebirths} · ${Math.floor(S.playtime/60)}m
+  </div>`;
+}
+
+/* ── tabs ── */
+document.querySelectorAll(".tabb").forEach(b=>b.onclick=()=>{
+  document.querySelectorAll(".tabb").forEach(x=>x.classList.remove("on"));
+  b.classList.add("on"); tab=b.dataset.tab;
+  document.getElementById("tabName").textContent=tab==="items"?t("tabItems"):tab==="upg"?t("tabUpg"):t("tabInfo");
+  refreshList();
+});
+
+/* ─────────────────────────── 10. CÂY KỸ NĂNG ─────────────────────────── */
+const tcv=document.getElementById("treeCv"), tcx=tcv.getContext("2d");
+let tview={s:.3,ox:0,oy:0,drag:false,px:0,py:0}, hoverNode=null;
+const GRID=400;
+function treeResize(){
+  const r=tcv.parentElement.getBoundingClientRect();
+  if(r.width<10||r.height<10) return;              // overlay còn ẩn
+  tcv.width=r.width*devicePixelRatio; tcv.height=r.height*devicePixelRatio;
+  if(!tview.init){ tview.ox=r.width/2; tview.oy=r.height/2+GRID*tview.s*0.3; tview.init=1; }
+  drawTree();
+}
+function treeCenter(){ tview.init=0; treeResize(); }
+function t2s(x,y){ return {x:x*GRID*tview.s+tview.ox, y:-y*GRID*tview.s+tview.oy}; }
+function drawTree(){
+  const r=tcv.parentElement.getBoundingClientRect();
+  tcx.setTransform(devicePixelRatio,0,0,devicePixelRatio,0,0);
+  tcx.fillStyle="#0b0d13"; tcx.fillRect(0,0,r.width,r.height);
+  // cạnh (ô kề trực giao)
+  const all=[{i:-1,x:0,y:0,root:1},...TREE];
+  tcx.lineWidth=Math.max(1.5,3*tview.s*3);
+  for(const n of all){
+    for(const [dx,dy] of [[1,0],[0,1]]){
+      const m=all.find(o=>o.x===n.x+dx&&o.y===n.y+dy); if(!m) continue;
+      const openA=n.root||nodeOpen(n.i), openB=m.root||nodeOpen(m.i);
+      const visA=n.root||nodeVisible(n), visB=m.root||nodeVisible(m);
+      if(!visA&&!visB) continue;
+      const a=t2s(n.x,n.y), b=t2s(m.x,m.y);
+      tcx.strokeStyle=(openA&&openB)?"#a78bfa":"#39405a";
+      tcx.beginPath(); tcx.moveTo(a.x,a.y); tcx.lineTo(b.x,b.y); tcx.stroke();
+    }
+  }
+  // node
+  const R=Math.max(9,58*tview.s);
+  for(const n of all){
+    const p=t2s(n.x,n.y);
+    if(p.x<-80||p.x>r.width+80||p.y<-80||p.y>r.height+80) continue;
+    const open=n.root||nodeOpen(n.i);
+    const vis=n.root||nodeVisible(n);
+    const dl=!n.root&&S.set.demo&&n.demo;
+    if(!vis){ tcx.fillStyle="#181c28"; tcx.beginPath(); tcx.arc(p.x,p.y,R*.55,0,6.283); tcx.fill(); continue; }
+    tcx.beginPath(); tcx.arc(p.x,p.y,R,0,6.283);
+    tcx.fillStyle = n.root?"#4c1d95" : dl?"#2a2130" : open?"#2f2a52":"#1c2130";
+    tcx.fill();
+    tcx.lineWidth=Math.max(1.5,3*tview.s*2);
+    tcx.strokeStyle = n.root?"#a78bfa" : dl?"#6b4a7a" : open?"#a78bfa" : (canUnlock(n)&&S.treePoint>0)?"#4ade80":"#39405a";
+    tcx.stroke();
+    if(hoverNode===n){ tcx.strokeStyle="#fff"; tcx.lineWidth=2; tcx.beginPath(); tcx.arc(p.x,p.y,R+4,0,6.283); tcx.stroke(); }
+    // icon gốc của node
+    const ic=n.root?null:UIMG["n_"+n.k];
+    if(ic&&ic._ok&&R>14){
+      const is=R*1.15; tcx.imageSmoothingEnabled=false;
+      tcx.save(); if(dl||(!open&&!(canUnlock(n)&&S.treePoint>0))) tcx.globalAlpha=.55;
+      tcx.drawImage(ic,p.x-is/2,p.y-is/2-R*.12,is,is); tcx.restore();
+      if(R>18){
+        if(!n.root&&!dl){ tcx.fillStyle=open?"#c4b5fd":"#6b7490"; tcx.textAlign="center"; tcx.font="600 "+Math.max(7,R*.2)+"px sans-serif"; tcx.fillText(open?t("unlocked"):"1 ⬦",p.x,p.y+R*.66); }
+        if(dl){ tcx.fillStyle="#b58ac9"; tcx.textAlign="center"; tcx.font=Math.max(7,R*.18)+"px sans-serif"; tcx.fillText("🔒",p.x,p.y+R*.66); }
+      }
+    } else if(R>18){
+      tcx.fillStyle=open?"#e9d5ff":dl?"#7c6b86":"#8b93ab";
+      tcx.font="600 "+Math.max(8,R*.24)+"px 'Segoe UI',sans-serif"; tcx.textAlign="center";
+      const nm=n.root?"ROOT":shortName(n.k);
+      wrapText(tcx,nm,p.x,p.y-R*.05,R*1.7,R*.28);
+      if(!n.root&&!dl){ tcx.fillStyle=open?"#a78bfa":"#6b7490"; tcx.font=Math.max(7,R*.2)+"px sans-serif"; tcx.fillText(open?t("unlocked"):"1 ⬦",p.x,p.y+R*.62); }
+      if(dl){ tcx.fillStyle="#6b4a7a"; tcx.font=Math.max(7,R*.18)+"px sans-serif"; tcx.fillText("DEMO 🔒",p.x,p.y+R*.62); }
+    }
+  }
+}
+function shortName(k){ return k.replace("Tree_","").replace(/_/g," "); }
+function wrapText(c,txt,x,y,maxW,lh){
+  const words=txt.split(" "); let line="",lines=[];
+  for(const w of words){ const test=line?line+" "+w:w; if(c.measureText(test).width>maxW&&line){lines.push(line);line=w;} else line=test; }
+  lines.push(line);
+  const off=-(lines.length-1)*lh/2;
+  lines.forEach((l,i)=>c.fillText(l,x,y+off+i*lh));
+}
+function treeNodeAt(mx,my){
+  const R=Math.max(9,58*tview.s);
+  const all=[{i:-1,x:0,y:0,root:1},...TREE];
+  for(const n of all){ const p=t2s(n.x,n.y); if(dist2(mx,my,p.x,p.y)<R*R) return n; }
+  return null;
+}
+tcv.addEventListener("mousedown",e=>{tview.drag=true;tview.px=e.clientX;tview.py=e.clientY;tcv.style.cursor="grabbing";});
+addEventListener("mouseup",()=>{tview.drag=false;tcv.style.cursor="grab";});
+tcv.addEventListener("mousemove",e=>{
+  const r=tcv.getBoundingClientRect(), mx=e.clientX-r.left, my=e.clientY-r.top;
+  if(tview.drag){ tview.ox+=e.clientX-tview.px; tview.oy+=e.clientY-tview.py; tview.px=e.clientX; tview.py=e.clientY; drawTree(); return; }
+  const n=treeNodeAt(mx,my);
+  if(n!==hoverNode){ hoverNode=n; drawTree(); }
+  const tip=document.getElementById("treeTip");
+  if(n&&!n.root){
+    const dl=S.set.demo&&n.demo;
+    const cur=treeSum(n.k), disp=n.pct?((n.v>=1?"×"+n.v:"+"+Math.round(n.v*100)+"%")):(n.v>0?"+"+n.v:n.v+"s");
+    tip.innerHTML=`<b>${shortName(n.k)}</b>${NODE_DES[lang][n.k]||""}<br><span style="color:#a78bfa">${disp}</span>${dl?'<br><span style="color:#f87171">'+t("demoNode")+"</span>":""}`;
+    tip.style.display="block"; tip.style.left=Math.min(mx+16,r.width-280)+"px"; tip.style.top=(my+16)+"px";
+  } else tip.style.display="none";
+});
+tcv.addEventListener("click",e=>{
+  const r=tcv.getBoundingClientRect();
+  const n=treeNodeAt(e.clientX-r.left,e.clientY-r.top);
+  if(!n||n.root) return;
+  if(nodeOpen(n.i)){
+    if(canLock(n)){ S.nodes=S.nodes.filter(i=>i!==n.i); S.treePoint++; onTreeChange(); }
+  } else if(canUnlock(n) && S.treePoint>0){
+    S.nodes.push(n.i); S.treePoint--; onTreeChange();
+  }
+});
+tcv.addEventListener("wheel",e=>{
+  e.preventDefault();
+  const r=tcv.getBoundingClientRect(), mx=e.clientX-r.left, my=e.clientY-r.top;
+  const old=tview.s;
+  tview.s=clamp(tview.s*(e.deltaY<0?1.13:0.885),0.1,0.75);
+  tview.ox=mx-(mx-tview.ox)*(tview.s/old); tview.oy=my-(my-tview.oy)*(tview.s/old);
+  drawTree();
+},{passive:false});
+function onTreeChange(){ drawTree(); updateHUD(); save(); }
+
+/* ─────────────────────────── 11. OVERLAY & NÚT ─────────────────────────── */
+const ov=(id,on)=>document.getElementById(id).classList.toggle("on",on);
+document.getElementById("bReinc").onclick=()=>{ov("ovTree",true);requestAnimationFrame(treeCenter);};
+document.getElementById("bTreeClose").onclick=()=>ov("ovTree",false);
+document.getElementById("bMap").onclick=()=>{ov("ovMap",true);renderMaps();};
+document.getElementById("bMapClose").onclick=()=>ov("ovMap",false);
+document.getElementById("bSet").onclick=()=>ov("ovSet",true);
+document.getElementById("bSetClose").onclick=()=>ov("ovSet",false);
+document.getElementById("bSteam").onclick=()=>{ov("ovDoc",true);renderDoc();};
+document.getElementById("bInfo").onclick=()=>{ov("ovDoc",true);renderDoc();};
+document.getElementById("bDocClose").onclick=()=>ov("ovDoc",false);
+addEventListener("keydown",e=>{ if(e.key==="Escape") ["ovTree","ovMap","ovSet","ovDoc"].forEach(i=>ov(i,false)); });
+
+document.getElementById("bRebirth").onclick=()=>{
+  if(!confirm(t("rebirthQ"))) return;
+  const keep = G.inheritance ? S.coin*0.05 : 0;
+  S.coin=keep; S.itemLv={}; S.upgLv={}; S.rebirths++;
+  startSession(); ov("ovTree",false); updateHUD(); save();
+};
+function renderMaps(){
+  const box=document.getElementById("mapList"); box.innerHTML="";
+  for(const m of MAPS){
+    const owned=S.mapsOwned.includes(m.i);
+    const locked=S.set.demo&&m.demo;
+    const can=!locked&&!owned&&S.totalCoin>=m.price;
+    const d=document.createElement("div"); d.className="mapc";
+    d.innerHTML=`<h3>${t(m.k)}</h3><p>${t(m.k+"_Des")}</p>
+      <button class="btn ${owned?"":"buy"}" ${(!owned&&!can)?"disabled":""}>
+        ${owned?(S.mapIndex===m.i?"▶ "+t("max"):"▶ Play"):locked?t("demoNode"):t("requireMap",fmt(m.price))}</button>`;
+    d.querySelector("button").onclick=()=>{
+      if(owned){ S.mapIndex=m.i; startSession(); ov("ovMap",false); save(); }
+      else if(can){ S.mapsOwned.push(m.i); S.mapIndex=m.i; startSession(); ov("ovMap",false); save(); }
+      renderMaps();
+    };
+    box.appendChild(d);
+  }
+}
+document.getElementById("bLang").onclick=()=>{ lang=lang==="vi"?"en":"vi"; S.set.lang=lang; applyLang(); save(); };
+document.getElementById("cShake").onchange=e=>{S.set.shake=e.target.checked;S.set.shakeChosen=true;save();};
+document.getElementById("cHide").onchange=e=>{S.set.hideMoney=e.target.checked;save();};
+document.getElementById("rCursor").oninput=e=>{S.set.cursor=+e.target.value;save();};
+document.getElementById("cDemo").onchange=e=>{S.set.demo=e.target.checked;drawTree();updateHUD();save();};
+document.getElementById("bReset").onclick=()=>{
+  if(!confirm(t("resetC"))) return;
+  localStorage.removeItem(SAVE_KEY); S=DEF_STATE(); lang=S.set.lang;
+  applyLang(); startSession(); updateHUD(); ov("ovSet",false);
+};
+function applyLang(){
+  document.querySelectorAll("[data-t]").forEach(e=>e.textContent=t(e.dataset.t));
+  document.getElementById("bLang").textContent = lang==="vi"?"Tiếng Việt":"English";
+  document.documentElement.lang=lang;
+  updateHUD(); drawTree(); showWarn(!!boss);
+}
+function renderDoc(){
+  document.getElementById("docBody").innerHTML=`
+  <p><b>Fluffy Cats — Idle Clicker</b>. Chạm mèo → mèo giật mình bật lên & rụng lông → rê chuột nhặt lông = tiền. Mua thêm mèo, nâng cấp, mở cây kỹ năng, đánh boss chuột.</p>
+  <h3>Điều khiển</h3><ul>
+    <li><kbd>Chạm/Click</kbd> vào mèo để nó bật nhảy + rụng lông · rê chuột quét qua lông dưới đất để nhặt</li>
+    <li><kbd>Click</kbd> vào Quà / Kẻ trộm / Boss chuột để tương tác · mua Robot hút bụi để tự nhặt lông</li>
+    <li>Cây kỹ năng: kéo để di chuyển, lăn chuột để zoom, click node để mở (click lại để gỡ điểm)</li>
+    <li><kbd>Esc</kbd> đóng cửa sổ · thêm <b>?reset</b> vào URL để chơi lại từ đầu</li>
+  </ul>
+  <h3>Credits — Asset</h3><ul>
+    <li>Mèo: <b>Pet Cats Pack</b> — LuizMelo (CC0)</li>
+    <li>Chó: <b>Pet Dogs Pack</b> — LuizMelo (CC0)</li>
+    <li>Chuột: <b>RATS!</b> — Micax (free, credit)</li>
+    <li>Lông, robot hút bụi, nền, hiệu ứng, code: tự làm (original)</li>
+  </ul>
+  <p style="color:#8b93ab;font-size:12px">Game gốc lấy cảm hứng từ thể loại incremental/idle clicker. Toàn bộ art trong bản này là CC0/miễn phí hoặc tự vẽ.</p>`;
+}
+
+/* ─────────────────────────── 12. KHỞI ĐỘNG ─────────────────────────── */
+function skinUI(){
+  document.querySelectorAll("img[data-ui]").forEach(im=>{ const u=uiURL(im.dataset.ui); if(u){ im.src=u; } else { im.style.display="none"; } });
+  injectFrames();
+}
+// 9-slice khung gốc bằng border-image (data URI từ ui.js) — bám sát khung game gốc
+function injectFrames(){
+  const gold=uiURL("frame_gold"), wood=uiURL("menubox"), slot=uiURL("panel_slot"), goldbtn=uiURL("btn_buy");
+  if(!gold&&!wood&&!slot) return;
+  const css=[];
+  if(gold) css.push(`#listframe{border:17px solid transparent;border-image:url("${gold}") 26 fill stretch;box-shadow:none;background:none;padding:0}`);
+  if(slot){
+    css.push(`.row{border:11px solid transparent;border-image:url("${slot}") 17 fill stretch;background:none;border-radius:0;margin-bottom:4px;padding:2px 6px 6px}`);
+    css.push(`.row .rowhead{margin-top:-2px}`);
+  }
+  if(wood){
+    css.push(`.tabb{border:11px solid transparent;border-image:url("${wood}") 9 fill stretch;background:none;box-shadow:none;border-radius:0}`);
+    css.push(`#botbar{border:12px solid transparent;border-image:url("${wood}") 9 fill stretch;background:none;border-radius:0}`);
+    css.push(`.botb{border:9px solid transparent;border-image:url("${wood}") 9 fill stretch;background:none;border-radius:0}`);
+  }
+  if(goldbtn) css.push(`.tabb.on{border:11px solid transparent;border-image:url("${goldbtn}") 12 fill stretch;box-shadow:0 0 12px #ffc94a66}`);
+  let st=document.getElementById("frameCSS");
+  if(!st){ st=document.createElement("style"); st.id="frameCSS"; document.head.appendChild(st); }
+  st.textContent=css.join("\n");
+}
+load();
+document.getElementById("cShake").checked=S.set.shake;
+document.getElementById("cHide").checked=S.set.hideMoney;
+document.getElementById("rCursor").value=S.set.cursor;
+document.getElementById("cDemo").checked=S.set.demo;
+resize(); startSession(); skinUI(); applyLang(); updateHUD();
+new ResizeObserver(()=>{resize();}).observe(document.getElementById("stage"));
+new ResizeObserver(()=>{treeResize();}).observe(document.getElementById("treeCv").parentElement);
+addEventListener("beforeunload",save);
+requestAnimationFrame(loop);
+</script>
+</body>
+</html>
