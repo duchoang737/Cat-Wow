@@ -672,9 +672,9 @@ function spawnCoins(x,y,total,lucky,jack){
   const per=total/n;
   for(let i=0;i<n;i++){
     if(coins.length>=MAXCOINS) coins.shift();          // RemoveOldestCoin
-    const a=rnd(0,6.283), sp=rnd(75,185);              // văng ra xa để rơi vãi trên đất
-    coins.push({x,y,vx:Math.cos(a)*sp,vy:Math.sin(a)*sp*0.6,z:rnd(12,26),vz:rnd(160,280),
-      v:per, tier, st:0, t:0, tx:0,ty:0, landed:false, settle:0, lucky:!!lucky, jack:!!jack});
+    const a=rnd(0,6.283), sp=rnd(28,90);               // chỉ văng NHẸ theo phương ngang để không chồng đống
+    coins.push({x,y,vx:Math.cos(a)*sp,vy:Math.sin(a)*sp*0.6,z:0,vz:0,   // z=0,vz=0: cứt NẰM NGAY trên đất, KHÔNG nẩy lên
+      v:per, tier, st:0, t:0, tx:0,ty:0, landed:true, settle:0.32, lucky:!!lucky, jack:!!jack});
   }
 }
 function collectCoin(c, byCollector){
@@ -1324,16 +1324,22 @@ function renderItems(box){
     const price=shopPrice(s), lv=itemLv(s.k);
     const val = s.cat==="human" ? humanValue(s.k) : null;
     const afford = unlocked && price!==null && S.coin>=price;
-    const sig = lv+"|"+unlocked+"|"+afford+"|"+price+"|"+(val!==null?Math.round(val):0)+"|"+(isCat()?1:0);
-    if(el.dataset.sig===sig) continue;        // chỉ vẽ lại khi đổi -> nút không bị tạo mới liên tục
-    el.dataset.sig=sig;
+    if(!el._built){                                  // dựng khung 1 LẦN -> nút KHÔNG bị thay mới -> không nuốt click
+      const icon=catShopIcon(s.k)||uiURL("u_"+s.k);
+      const badge = icon ? `<img class="uicon" src="${icon}">` : `<span class="dot" style="background:${TIER_COL[s.k]||"#22d3ee"}"></span>`;
+      el.innerHTML=`<div class="rowhead"><b>${badge}<span class="nm"></span></b><span class="lv"></span></div>
+        <div class="rowdes"></div>
+        <div class="rowfoot"><button class="btn buy"></button></div>`;
+      el._nm=el.querySelector(".nm"); el._lv=el.querySelector(".lv"); el._des=el.querySelector(".rowdes"); el._btn=el.querySelector("button");
+      el._btn.onclick=()=>buyItem(s);
+      el._built=true;
+    }
     el.classList.toggle("locked",!unlocked);
-    const icon=catShopIcon(s.k)||uiURL("u_"+s.k);
-    const badge = icon ? `<img class="uicon" src="${icon}">` : `<span class="dot" style="background:${TIER_COL[s.k]||"#22d3ee"}"></span>`;
-    el.innerHTML=`<div class="rowhead"><b>${badge}${dispName(s.k)}</b><span class="lv">${lv}${s.p.length?" / "+s.p.length:""}</span></div>
-      <div class="rowdes">${val!==null?("★ "+fmt(val)+" / lần ngã"):(s.cat==="animal"?("⏱ "+(BASE.animalEnergy+upgVal(s.k+"_Energy")).toFixed(0)+"s · ⬤ "+Math.round((1+upgVal(s.k+"_Size"))*100)+"%"):("◎ "+Math.round((BASE.collectorRadius+upgVal("Collector_Radius"))*100)+"%"))}</div>
-      <div class="rowfoot"><button class="btn buy" ${afford?"":"disabled"}>${price===null?t("max"):t("buy")+` ·`+fmt(price)}</button></div>`;
-    el.querySelector("button").onclick=()=>buyItem(s);
+    el._nm.textContent=dispName(s.k);
+    el._lv.textContent=lv+(s.p.length?" / "+s.p.length:"");
+    el._des.textContent = val!==null?("★ "+fmt(val)+" / lần ngã"):(s.cat==="animal"?("⏱ "+(BASE.animalEnergy+upgVal(s.k+"_Energy")).toFixed(0)+"s · ⬤ "+Math.round((1+upgVal(s.k+"_Size"))*100)+"%"):("◎ "+Math.round((BASE.collectorRadius+upgVal("Collector_Radius"))*100)+"%"));
+    el._btn.disabled=!afford;
+    el._btn.textContent = price===null?t("max"):t("buy")+" ·"+fmt(price);
   }
 }
 const UPG_GROUPS=[
@@ -1368,21 +1374,27 @@ function renderUpg(box){
       const el=rowEl(box,"u_"+key);
       const price=upgPrice(key), lv=upgLv(key), tb=UPG[key];
       const afford = unlocked && price!==null && S.coin>=price;
-      const sig = lv+"|"+unlocked+"|"+afford+"|"+price+"|"+(isCat()?1:0);
-      if(el.dataset.sig===sig) continue;
-      el.dataset.sig=sig;
+      if(!el._built){                                // dựng khung 1 LẦN -> nút không bị thay mới -> không nuốt click
+        const uic=catShopIcon(g.n)||uiURL("u_"+g.n);
+        const ubadge = uic ? `<img class="uicon" src="${uic}">` : `<span class="dot" style="background:${TIER_COL[g.n]||"#22d3ee"}"></span>`;
+        el.innerHTML=`<div class="rowhead"><b>${ubadge}<span class="nm"></span></b><span class="lv"></span></div>
+          <div class="rowdes"></div>
+          <div class="rowfoot"><button class="btn buy"></button></div>`;
+        el._nm=el.querySelector(".nm"); el._lv=el.querySelector(".lv"); el._des=el.querySelector(".rowdes"); el._btn=el.querySelector("button");
+        el._btn.onclick=()=>{
+          const p=upgPrice(key); if(p===null||S.coin<p) return;
+          S.coin-=p; S.upgLv[key]=upgLv(key)+1;
+          if(key.startsWith("Bull")||key.startsWith("Elephant")) animals.forEach(a=>{ if(a.kind===key.split("_")[0]){ a.max=BASE.animalEnergy+upgVal(a.kind+"_Energy"); a.scale=1+upgVal(a.kind+"_Size"); } });
+          updateHUD(); save();
+        };
+        el._built=true;
+      }
       el.classList.toggle("locked",!unlocked);
-      const uic=catShopIcon(g.n)||uiURL("u_"+g.n);
-      const ubadge = uic ? `<img class="uicon" src="${uic}">` : `<span class="dot" style="background:${TIER_COL[g.n]||"#22d3ee"}"></span>`;
-      el.innerHTML=`<div class="rowhead"><b>${ubadge}${dispName(g.n)} · ${key.split("_")[1]}</b><span class="lv">${lv} / ${tb.length-1}</span></div>
-        <div class="rowdes">${upgDes(key)}</div>
-        <div class="rowfoot"><button class="btn buy" ${afford?"":"disabled"}>${price===null?t("max"):`·`+fmt(price)}</button></div>`;
-      el.querySelector("button").onclick=()=>{
-        const p=upgPrice(key); if(p===null||S.coin<p) return;
-        S.coin-=p; S.upgLv[key]=upgLv(key)+1;
-        if(key.startsWith("Bull")||key.startsWith("Elephant")) animals.forEach(a=>{ if(a.kind===key.split("_")[0]){ a.max=BASE.animalEnergy+upgVal(a.kind+"_Energy"); a.scale=1+upgVal(a.kind+"_Size"); } });
-        updateHUD(); save();
-      };
+      el._nm.textContent=dispName(g.n)+" · "+key.split("_")[1];
+      el._lv.textContent=lv+" / "+(tb.length-1);
+      el._des.textContent=upgDes(key);
+      el._btn.disabled=!afford;
+      el._btn.textContent = price===null?t("max"):"·"+fmt(price);
     }
   }
 }
