@@ -914,7 +914,7 @@ function spawnBoss(){
   const mini=(S.bossN||0)===0 ? false : Math.random()<0.7;   // boss ĐẦU TIÊN luôn là chuột ĐEN (ratboss)
   S.bossN=(S.bossN||0)+1;
   const hp=(mini?12:30)*Math.max(1,Math.pow(1.7,S.treeLevel));
-  boss={x:W/2,y:H/2,ax:rnd(240,W-240),ay:rnd(180,H-180),hp:hp,max:hp,mini,block:0,blocked:false,t:0};
+  boss={x:W/2,y:H/2,ax:rnd(240,W-240),ay:rnd(180,H-180),hp:hp,max:hp,mini,block:0,blocked:false,t:0,dir:-1,wx:rnd(80,W-80),wy:rnd(70,H-70)};
   showWarn(true);   // boss ra: mèo vẫn hoạt động, chỉ giảm nửa tiền (xem knock)
 }
 function hitBoss(d){
@@ -935,21 +935,24 @@ function updateBoss(dt){
   boss.t+=dt; boss.block-=dt;
   if(boss.block<=0){ boss.blocked=!boss.blocked; boss.block=boss.blocked?1.5:4.5; }
   if(boss.eatFlash>0) boss.eatFlash-=dt;
-  // ── Chuột ĂN CỨT: đi tới cục cứt gần nhất trên sàn rồi ăn. Diệt càng nhiều chuột -> càng nhanh ──
+  // ── Chuột chạy KHẮP MÀN ăn cứt: nhắm cục cứt gần nhất; hết cứt thì lang thang điểm ngẫu nhiên. Diệt càng nhiều -> càng nhanh ──
   const kills=S.bossKills||0;
   const rush=Math.min(1+kills*0.18, 3.6);                 // +18% tốc độ mỗi lần diệt (trần 3.6x)
-  const speed=(boss.mini?72:96)*rush, eatR=boss.mini?36:48;
+  const speed=(boss.mini?80:106)*rush, eatR=boss.mini?36:48;
   let tgt=null, bd=1e9;
   for(const c of coins){ if(c.st!==0||!c.landed) continue; const d=dist2(c.x,c.y,boss.x,boss.y); if(d<bd){ bd=d; tgt=c; } }
-  if(tgt){
-    const dx=tgt.x-boss.x, dy=tgt.y-boss.y, d=Math.hypot(dx,dy)||1;
-    if(d>eatR){ boss.x+=dx/d*speed*dt; boss.y+=dy/d*speed*dt; }
-    else {                                                // ăn: xoá mọi cục cứt trong tầm (mất tiền của người chơi)
-      for(let i=coins.length-1;i>=0;i--){ const c=coins[i]; if(c.st===0 && c.landed && dist2(c.x,c.y,boss.x,boss.y)<eatR*eatR){ coins.splice(i,1); boss.eatFlash=0.22; } }
-    }
-    boss.ax=boss.x; boss.ay=boss.y;                       // nhớ vị trí để lượn khi hết cứt
-  } else {
-    boss.x=boss.ax+Math.cos(boss.t*0.7)*36; boss.y=boss.ay+Math.sin(boss.t*1.1)*24;
+  let tx,ty;
+  if(tgt){ tx=tgt.x; ty=tgt.y; }
+  else {                                                  // không còn cứt -> đi tới điểm lang thang mới khắp màn
+    if(dist2(boss.x,boss.y,boss.wx,boss.wy)<44*44){ boss.wx=rnd(80,W-80); boss.wy=rnd(70,H-70); }
+    tx=boss.wx; ty=boss.wy;
+  }
+  const dx=tx-boss.x, dy=ty-boss.y, d=Math.hypot(dx,dy)||1;
+  if(dx<-3) boss.dir=-1; else if(dx>3) boss.dir=1;        // quay mặt theo hướng đi (đi thẳng, không lùi)
+  const stop=tgt?eatR:8;                                  // ăn cứt: dừng ở tầm ăn · lang thang: đi tới sát điểm (không kẹt vùng chết)
+  if(d>stop){ boss.x+=dx/d*speed*dt; boss.y+=dy/d*speed*dt; }
+  else if(tgt){                                           // ăn: xoá mọi cục cứt trong tầm (mất tiền người chơi)
+    for(let i=coins.length-1;i>=0;i--){ const c=coins[i]; if(c.st===0 && c.landed && dist2(c.x,c.y,boss.x,boss.y)<eatR*eatR){ coins.splice(i,1); boss.eatFlash=0.22; } }
   }
   boss.x=clamp(boss.x,60,W-60); boss.y=clamp(boss.y,60,H-60);
 }
@@ -1193,7 +1196,8 @@ function drawBoss(b){
     if(spr&&spr._ok){
       const k=(b.mini?1.35:2.05)*(b.eatFlash>0?1.13:1), dw=spr.naturalWidth*k, dh=spr.naturalHeight*k;
       cx.save(); cx.imageSmoothingEnabled=false; if(b.blocked)cx.globalAlpha=.55;
-      cx.drawImage(spr, b.x-dw/2, b.y-dh+12, dw, dh); cx.restore();
+      cx.translate(b.x,b.y); if(b.dir>0) cx.scale(-1,1);   // sprite gốc quay TRÁI -> đi sang phải thì lật ngang
+      cx.drawImage(spr, -dw/2, -dh+12, dw, dh); cx.restore();
       if(b.blocked){ cx.strokeStyle="#93c5fd"; cx.lineWidth=3; cx.beginPath(); cx.arc(b.x,b.y-dh*0.4,dw*0.5,0,6.283); cx.stroke(); }
       const w=Math.max(140,dw*0.8),p=clamp(b.hp/b.max,0,1), by=b.y-dh-6;
       cx.fillStyle="#0009"; cx.fillRect(b.x-w/2,by,w,9); cx.fillStyle="#ef4444"; cx.fillRect(b.x-w/2,by,w*p,9); cx.strokeStyle="#fff3"; cx.lineWidth=1; cx.strokeRect(b.x-w/2,by,w,9);
