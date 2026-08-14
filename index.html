@@ -103,7 +103,6 @@ kbd{background:var(--panel2);border:1px solid var(--line);border-radius:4px;padd
     <div id="stage">
       <canvas id="game"></canvas>
       <div id="coinHud"><span id="hudCoin">0</span><span class="cur">$</span></div>
-      <button id="bMap" class="stagebtn" title="Bản đồ">🗺️</button>
       <div id="warn"></div>
       <div id="toasts"></div>
     </div>
@@ -1495,7 +1494,6 @@ function onTreeChange(){ drawTree(); updateHUD(); save(); }
 const ov=(id,on)=>document.getElementById(id).classList.toggle("on",on);
 document.getElementById("bReinc").onclick=()=>{ov("ovTree",true);requestAnimationFrame(treeCenter);};
 document.getElementById("bTreeClose").onclick=()=>ov("ovTree",false);
-document.getElementById("bMap").onclick=()=>{ov("ovMap",true);renderMaps();};
 document.getElementById("bMapClose").onclick=()=>ov("ovMap",false);
 document.getElementById("bSet").onclick=()=>ov("ovSet",true);
 document.getElementById("bSetClose").onclick=()=>ov("ovSet",false);
