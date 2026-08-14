@@ -417,7 +417,7 @@ const DEF_STATE = ()=>({
   itemLv:{},        // key -> level (số đơn vị đã mua)
   upgLv:{},         // key -> level
   nodes:[],         // index node đã mở
-  playtime:0, rebirths:0,
+  playtime:0, rebirths:0, bossN:0,
   set:{shake:false, hideMoney:false, cursor:45, demo:true, lang:"vi", theme:"cat", themeChosen:false, shakeChosen:false},
 });
 let S = DEF_STATE();
@@ -894,7 +894,8 @@ function updateGuardians(dt){
   }
 }
 function spawnBoss(){
-  const mini=Math.random()<0.7;
+  const mini=(S.bossN||0)===0 ? false : Math.random()<0.7;   // boss ĐẦU TIÊN luôn là chuột ĐEN (ratboss)
+  S.bossN=(S.bossN||0)+1;
   const hp=(mini?12:30)*Math.max(1,Math.pow(1.7,S.treeLevel));
   boss={x:W/2,y:H/2,ax:rnd(240,W-240),ay:rnd(180,H-180),hp:hp,max:hp,mini,block:0,blocked:false,t:0};
   showWarn(true);   // boss ra: mèo vẫn hoạt động, chỉ giảm nửa tiền (xem knock)
