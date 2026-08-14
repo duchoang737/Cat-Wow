@@ -89,7 +89,7 @@ canvas#game{display:block;width:100%;height:100%;cursor:none;touch-action:none;-
 .ovhead{display:flex;align-items:center;gap:12px;padding:12px 18px;border-bottom:1px solid var(--line);background:var(--panel)}
 .ovhead h2{font-size:17px;flex:1}
 .ovbody{flex:1;overflow:auto;padding:18px;position:relative}
-#treeCv{display:block;width:100%;height:100%;cursor:grab}
+#treeCv{display:block;width:100%;height:100%;cursor:grab;touch-action:none}
 #treeWrap{position:absolute;inset:0}
 #treeTip{position:absolute;background:#0f1219;border:1px solid var(--line);border-radius:8px;padding:9px 12px;font-size:12px;max-width:260px;pointer-events:none;display:none;z-index:5;line-height:1.5}
 #treeTip b{color:var(--gold);display:block;margin-bottom:3px}
@@ -351,64 +351,64 @@ const L = {
 // Mô tả node cây — nguyên văn từ bảng localization của bản gốc
 const NODE_DES = {
   vi:{
-    Tree_GoldenAura_count:"Human ngã trong Golden Aura nhận thêm 200% giá trị.",
-    Tree_GoldenAura_radius:"Tăng phạm vi Golden Aura.",
-    Tree_LuckyThief_count:"Hạ Thief giúp Human tăng 400% giá trị trong 30 giây.",
-    Tree_Noble_Unlock:"Mở khóa Quý Tộc.", Tree_Knight_Unlock:"Mở khóa Hiệp Sĩ.",
-    Tree_King_Unlock:"Mở khóa Vua.", Tree_Elephant_Unlock:"Mở khóa Voi.",
-    Tree_Gift_Unlock:"Quà sẽ cho phần thưởng ngẫu nhiên khi mở.",
-    Tree_Lightning_Unlock:"Lightning tự kích hoạt sau một khoảng thời gian.",
-    Tree_Lightning_cooldown:"Giảm thời gian kích hoạt Lightning.",
-    Tree_Rocket_Unlock:"Meteorite tự kích hoạt sau một khoảng thời gian.",
-    Tree_Rocket_cooldown:"Giảm thời gian kích hoạt Meteorite.",
-    Tree_ChainReaction_Unlock:"Khi một Human ngã, có cơ hội làm Human gần đó ngã theo.",
-    Tree_ChainReaction_Percent:"Tăng tỉ lệ kích hoạt dây chuyền.",
-    Tree_ChainReaction_radius:"Tăng bán kính dây chuyền.",
-    Tree_AutoBreaker_Unlock:"Mở khóa Auto Breaker — tự động đấm.",
-    Tree_LuckyFall_Unlock:"Khi Human ngã, có 25% cơ hội nhận thêm 400% giá trị.",
-    Tree_Animal_Reward:"Động vật giúp con người nhận ra giá trị của bản thân.",
-    Tree_Animal_Reward_Bonus:"Động vật giúp con người nhận ra giá trị của bản thân.",
-    Tree_Collector_Lucky:"Coin do Collector nhặt có cơ hội nhận x10 giá trị.",
-    Tree_Guardian_Count:"Bắt đầu mỗi phiên với thêm 1 Guardian.",
-    Tree_First_Time_Gift:"Bắt đầu game với 1 Commoner, 1 Clown, 1 Noble và 1 Soldier.",
-    Tree_Inheritance:"Khi Chuyển sinh, giữ lại 5% số tiền trước đó.",
-    Tree_Golden_Punch:"Không dùng Breaker làm ngã Human trong 30 giây → kích hoạt Nắm Đấm Vàng 5 giây, nhận x5 tiền.",
-    Tree_Commoner_value:"Dân Thường nhận thêm giá trị khi ngã.",
-    Tree_Clown_value:"Chú Hề nhận thêm giá trị khi ngã.",
-    Tree_Soldier_value:"Lính nhận thêm giá trị khi ngã.",
-    Tree_Noble_value:"Quý Tộc nhận thêm giá trị khi ngã.",
-    Tree_Knight_value:"Hiệp Sĩ nhận thêm giá trị khi ngã.",
-    Tree_King_value:"Vua nhận thêm giá trị khi ngã.",
+    Tree_GoldenAura_count:"Mèo giật mình bên trong Hào Quang Vàng rơi ra cứt +200% giá trị.",
+    Tree_GoldenAura_radius:"Tăng phạm vi Hào Quang Vàng.",
+    Tree_LuckyThief_count:"Hạ Kẻ Trộm → mọi mèo rơi cứt +400% giá trị trong 30 giây.",
+    Tree_Noble_Unlock:"Mở khoá Mèo Đen.", Tree_Knight_Unlock:"Mở khoá Mèo Tuxedo.",
+    Tree_King_Unlock:"Mở khoá Mèo Hoàng Gia.", Tree_Elephant_Unlock:"Mở khoá Chó To.",
+    Tree_Gift_Unlock:"Thỉnh thoảng có Quà rơi xuống — chạm để mở nhận thưởng ngẫu nhiên.",
+    Tree_Lightning_Unlock:"Tia Sét tự đánh làm cả vùng mèo giật mình sau mỗi khoảng thời gian.",
+    Tree_Lightning_cooldown:"Giảm thời gian hồi của Tia Sét.",
+    Tree_Rocket_Unlock:"Thiên Thạch tự rơi làm mèo quanh đó giật mình sau mỗi khoảng thời gian.",
+    Tree_Rocket_cooldown:"Giảm thời gian hồi của Thiên Thạch.",
+    Tree_ChainReaction_Unlock:"Khi một mèo giật mình, có cơ hội làm mèo gần đó giật mình theo (rơi thêm cứt).",
+    Tree_ChainReaction_Percent:"Tăng tỉ lệ kích hoạt phản ứng dây chuyền.",
+    Tree_ChainReaction_radius:"Tăng bán kính lan của dây chuyền.",
+    Tree_AutoBreaker_Unlock:"Tự động chạm mèo giúp bạn (không cần bấm tay).",
+    Tree_LuckyFall_Unlock:"Khi mèo giật mình, có 25% cơ hội rơi ra cứt +400% giá trị.",
+    Tree_Animal_Reward:"Chó làm mèo giật mình có cơ hội rơi ra cứt giá trị cao hơn.",
+    Tree_Animal_Reward_Bonus:"Tăng mức thưởng khi chó làm mèo giật mình.",
+    Tree_Collector_Lucky:"Cứt do Robot hút bụi nhặt có cơ hội nhận ×10 giá trị.",
+    Tree_Guardian_Count:"Bắt đầu mỗi phiên với thêm 1 Vệ Sĩ (giúp đánh boss chuột).",
+    Tree_First_Time_Gift:"Bắt đầu game với sẵn Mèo Hoang, Mèo Tam Thể, Mèo Đen và Mèo Xám.",
+    Tree_Inheritance:"Khi Chuyển Sinh, giữ lại 5% số tiền trước đó.",
+    Tree_Golden_Punch:"Không chạm mèo nào trong 30 giây → kích hoạt Cú Chạm Vàng 5 giây: nhận ×5 tiền.",
+    Tree_Commoner_value:"Mèo Hoang rơi ra cứt giá trị cao hơn.",
+    Tree_Clown_value:"Mèo Tam Thể rơi ra cứt giá trị cao hơn.",
+    Tree_Soldier_value:"Mèo Xám rơi ra cứt giá trị cao hơn.",
+    Tree_Noble_value:"Mèo Đen rơi ra cứt giá trị cao hơn.",
+    Tree_Knight_value:"Mèo Tuxedo rơi ra cứt giá trị cao hơn.",
+    Tree_King_value:"Mèo Hoàng Gia rơi ra cứt giá trị cao hơn.",
   },
   en:{
-    Tree_GoldenAura_count:"Humans who fall in GoldenAura receive an additional 200% value.",
-    Tree_GoldenAura_radius:"Increase the range of Golden Aura.",
-    Tree_LuckyThief_count:"Defeating the thief will grant you an additional 400% Human value for 30 seconds.",
-    Tree_Noble_Unlock:"Unlock Noble.", Tree_Knight_Unlock:"Unlock Knight.",
-    Tree_King_Unlock:"Unlock King.", Tree_Elephant_Unlock:"Unlock Elephant.",
-    Tree_Gift_Unlock:"Gift will give a random gift when opened.",
-    Tree_Lightning_Unlock:"Lightning will automatically activate after a period of time.",
-    Tree_Lightning_cooldown:"Reduce the time it takes to activate Lightning.",
-    Tree_Rocket_Unlock:"Meteorite will automatically activate after a certain period of time.",
-    Tree_Rocket_cooldown:"Reduce the duration of each Meteorite activation.",
-    Tree_ChainReaction_Unlock:"When a human falls, there's a chance they'll cause another human nearby to fall.",
-    Tree_ChainReaction_Percent:"Increase Chain Reaction activation rate.",
-    Tree_ChainReaction_radius:"Increase the scope of Chain Reactions.",
-    Tree_AutoBreaker_Unlock:"Unlock Auto Breaker.",
-    Tree_LuckyFall_Unlock:"When a Human falls, there's a 25% chance they'll receive an additional 400% of their value.",
-    Tree_Animal_Reward:"Animals help humans realize their value.",
-    Tree_Animal_Reward_Bonus:"Animals help humans realize their value.",
-    Tree_Collector_Lucky:"Coins collected by the Collector have a chance to receive 10 times their value.",
-    Tree_Guardian_Count:"Start each game session with an additional Guardian.",
-    Tree_First_Time_Gift:"Start the game with 1 Commoner, 1 Clown, 1 Noble, and 1 Soldier.",
-    Tree_Inheritance:"When you undergo Rebirth, retain 5% of the funds you had before the Rebirth.",
-    Tree_Golden_Punch:"Do not use Breaker to knock down Human for 30 seconds, activate Golden Punch to receive x5 gold for 5 seconds.",
-    Tree_Commoner_value:"Commoner gains additional value when they fall.",
-    Tree_Clown_value:"Clowns gain extra value when they fall.",
-    Tree_Soldier_value:"Soldier gains extra value when they fall.",
-    Tree_Noble_value:"Noble gives extra value when you fall.",
-    Tree_Knight_value:"Knight gains extra value when he falls.",
-    Tree_King_value:"King gains extra value when he falls.",
+    Tree_GoldenAura_count:"Cats startled inside the Golden Aura drop poop worth +200%.",
+    Tree_GoldenAura_radius:"Increase the Golden Aura radius.",
+    Tree_LuckyThief_count:"Defeat the Thief → every cat drops +400%-value poop for 30 seconds.",
+    Tree_Noble_Unlock:"Unlock the Black Cat.", Tree_Knight_Unlock:"Unlock the Tuxedo Cat.",
+    Tree_King_Unlock:"Unlock the Royal Cat.", Tree_Elephant_Unlock:"Unlock the Big Dog.",
+    Tree_Gift_Unlock:"Gifts drop in now and then — tap to open for a random reward.",
+    Tree_Lightning_Unlock:"Lightning auto-strikes and startles a patch of cats periodically.",
+    Tree_Lightning_cooldown:"Reduce the Lightning cooldown.",
+    Tree_Rocket_Unlock:"A meteor auto-drops and startles nearby cats periodically.",
+    Tree_Rocket_cooldown:"Reduce the meteor cooldown.",
+    Tree_ChainReaction_Unlock:"When a cat is startled, nearby cats may get startled too (more poop).",
+    Tree_ChainReaction_Percent:"Increase the chain-reaction trigger rate.",
+    Tree_ChainReaction_radius:"Increase the chain-reaction radius.",
+    Tree_AutoBreaker_Unlock:"Auto-taps cats for you (no manual tapping needed).",
+    Tree_LuckyFall_Unlock:"When a cat is startled, 25% chance to drop poop worth +400%.",
+    Tree_Animal_Reward:"Dogs that startle cats give a chance for higher-value poop.",
+    Tree_Animal_Reward_Bonus:"Increase the bonus when dogs startle cats.",
+    Tree_Collector_Lucky:"Poop collected by the Robot Vacuum has a chance for ×10 value.",
+    Tree_Guardian_Count:"Start each session with +1 Guardian (helps fight rat bosses).",
+    Tree_First_Time_Gift:"Start with an Alley Cat, Calico, Black Cat and Grey Tabby.",
+    Tree_Inheritance:"On Rebirth, keep 5% of your previous money.",
+    Tree_Golden_Punch:"Don't tap any cat for 30s → trigger the Golden Touch for 5s: ×5 money.",
+    Tree_Commoner_value:"The Alley Cat drops higher-value poop.",
+    Tree_Clown_value:"The Calico drops higher-value poop.",
+    Tree_Soldier_value:"The Grey Tabby drops higher-value poop.",
+    Tree_Noble_value:"The Black Cat drops higher-value poop.",
+    Tree_Knight_value:"The Tuxedo Cat drops higher-value poop.",
+    Tree_King_value:"The Royal Cat drops higher-value poop.",
   }
 };
 let lang = "vi";
@@ -1320,7 +1320,12 @@ function buyItem(s){
 function renderItems(box){
   for(const s of SHOP){
     const el=rowEl(box,"i_"+s.k);
-    const unlocked = s.cat==="human" ? tierUnlocked(s.k) : (s.req? treeHas(s.req) : true);
+    // Mèo mở TUẦN TỰ: bậc sau chỉ HIỆN & mua được khi đã sở hữu ≥1 con bậc liền trước
+    let show=true, seqUnlocked=true;
+    if(s.cat==="human"){ const idx=TIERS.indexOf(s.k); if(idx>0){ const prevOwned=itemLv(TIERS[idx-1])>=1; show=prevOwned; seqUnlocked=prevOwned; } }
+    el.style.display = show ? "" : "none";
+    if(!show) continue;
+    const unlocked = s.cat==="human" ? seqUnlocked : (s.req? treeHas(s.req) : true);
     const price=shopPrice(s), lv=itemLv(s.k);
     const val = s.cat==="human" ? humanValue(s.k) : null;
     const afford = unlocked && price!==null && S.coin>=price;
@@ -1516,29 +1521,57 @@ function treeNodeAt(mx,my){
 }
 tcv.addEventListener("mousedown",e=>{tview.drag=true;tview.px=e.clientX;tview.py=e.clientY;tcv.style.cursor="grabbing";});
 addEventListener("mouseup",()=>{tview.drag=false;tcv.style.cursor="grab";});
-tcv.addEventListener("mousemove",e=>{
-  const r=tcv.getBoundingClientRect(), mx=e.clientX-r.left, my=e.clientY-r.top;
-  if(tview.drag){ tview.ox+=e.clientX-tview.px; tview.oy+=e.clientY-tview.py; tview.px=e.clientX; tview.py=e.clientY; drawTree(); return; }
-  const n=treeNodeAt(mx,my);
-  if(n!==hoverNode){ hoverNode=n; drawTree(); }
-  const tip=document.getElementById("treeTip");
-  if(n&&!n.root){
-    const dl=S.set.demo&&n.demo;
-    const cur=treeSum(n.k), disp=n.pct?((n.v>=1?"×"+n.v:"+"+Math.round(n.v*100)+"%")):(n.v>0?"+"+n.v:n.v+"s");
-    tip.innerHTML=`<b>${shortName(n.k)}</b>${NODE_DES[lang][n.k]||""}<br><span style="color:#a78bfa">${disp}</span>${dl?'<br><span style="color:#f87171">'+t("demoNode")+"</span>":""}`;
-    tip.style.display="block"; tip.style.left=Math.min(mx+16,r.width-280)+"px"; tip.style.top=(my+16)+"px";
-  } else tip.style.display="none";
-});
-tcv.addEventListener("click",e=>{
-  const r=tcv.getBoundingClientRect();
-  const n=treeNodeAt(e.clientX-r.left,e.clientY-r.top);
+function doTreeNode(n){
   if(!n||n.root) return;
   if(nodeOpen(n.i)){
     if(canLock(n)){ S.nodes=S.nodes.filter(i=>i!==n.i); S.treePoint++; onTreeChange(); }
   } else if(canUnlock(n) && S.treePoint>0){
     S.nodes.push(n.i); S.treePoint--; onTreeChange();
   }
+}
+function showTreeTip(n,mx,my,rw,hint){
+  const tip=document.getElementById("treeTip");
+  if(n&&!n.root){
+    const dl=S.set.demo&&n.demo;
+    const disp=n.pct?((n.v>=1?"×"+n.v:"+"+Math.round(n.v*100)+"%")):(n.v>0?"+"+n.v:n.v+"s");
+    tip.innerHTML=`<b>${shortName(n.k)}</b>${NODE_DES[lang][n.k]||""}<br><span style="color:#a78bfa">${disp}</span>${dl?'<br><span style="color:#f87171">'+t("demoNode")+"</span>":""}${hint?'<br><span style="color:#ffc94a">'+hint+"</span>":""}`;
+    tip.style.display="block"; tip.style.left=Math.min(mx+16,rw-280)+"px"; tip.style.top=(my+16)+"px";
+  } else tip.style.display="none";
+}
+tcv.addEventListener("mousemove",e=>{
+  const r=tcv.getBoundingClientRect(), mx=e.clientX-r.left, my=e.clientY-r.top;
+  if(tview.drag){ tview.ox+=e.clientX-tview.px; tview.oy+=e.clientY-tview.py; tview.px=e.clientX; tview.py=e.clientY; drawTree(); return; }
+  const n=treeNodeAt(mx,my);
+  if(n!==hoverNode){ hoverNode=n; drawTree(); }
+  showTreeTip(n,mx,my,r.width);
 });
+tcv.addEventListener("click",e=>{
+  const r=tcv.getBoundingClientRect();
+  doTreeNode(treeNodeAt(e.clientX-r.left,e.clientY-r.top));
+});
+// ── Cảm ứng cây kỹ năng: kéo để di chuyển · chạm node xem NOTE · chạm lần nữa để mở khoá ──
+let treeTS=null, treeMoved=false, treeSel=null;
+tcv.addEventListener("touchstart",e=>{ if(e.cancelable)e.preventDefault(); const tp=e.touches[0]; treeTS={x:tp.clientX,y:tp.clientY}; treeMoved=false; },{passive:false});
+tcv.addEventListener("touchmove",e=>{ if(e.cancelable)e.preventDefault(); if(!treeTS)return; const tp=e.touches[0]; const dx=tp.clientX-treeTS.x, dy=tp.clientY-treeTS.y; if(treeMoved||Math.hypot(dx,dy)>6){ treeMoved=true; tview.ox+=tp.clientX-treeTS.x; tview.oy+=tp.clientY-treeTS.y; treeTS={x:tp.clientX,y:tp.clientY}; drawTree(); } },{passive:false});
+tcv.addEventListener("touchend",e=>{
+  if(!treeTS || treeMoved){ treeTS=null; return; }
+  treeTS=null;
+  const tp=e.changedTouches[0], r=tcv.getBoundingClientRect(), mx=tp.clientX-r.left, my=tp.clientY-r.top;
+  const n=treeNodeAt(mx,my);
+  if(!n||n.root){ treeSel=null; document.getElementById("treeTip").style.display="none"; return; }
+  hoverNode=n; drawTree();
+  if(treeSel===n){                                   // chạm lần 2 cùng node -> mở khoá / gỡ
+    doTreeNode(n); treeSel=null;
+    showTreeTip(n,mx,my,r.width, lang==="vi"?"✓ Đã cập nhật":"✓ Updated");
+  } else {                                           // chạm lần 1 -> xem note + gợi ý
+    treeSel=n;
+    const canU=!nodeOpen(n.i)&&canUnlock(n)&&S.treePoint>0, canL=nodeOpen(n.i)&&canLock(n);
+    const hint = canU?(lang==="vi"?"👆 Chạm lần nữa để MỞ KHOÁ (−1 điểm)":"👆 Tap again to UNLOCK (−1 pt)")
+               : canL?(lang==="vi"?"👆 Chạm lần nữa để GỠ (+1 điểm)":"👆 Tap again to REMOVE (+1 pt)")
+               : (!nodeOpen(n.i)&&S.treePoint<=0?(lang==="vi"?"Cần điểm kỹ năng":"Need a skill point"):"");
+    showTreeTip(n,mx,my,r.width,hint);
+  }
+},{passive:false});
 tcv.addEventListener("wheel",e=>{
   e.preventDefault();
   const r=tcv.getBoundingClientRect(), mx=e.clientX-r.left, my=e.clientY-r.top;
