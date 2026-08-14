@@ -25,7 +25,7 @@ html,body{height:100%;font-family:"Segoe UI",system-ui,sans-serif;background:var
 #stage{flex:1;position:relative;min-height:0;border-radius:12px;overflow:hidden;
   box-shadow:0 0 0 3px #2a1f12,0 0 0 10px #6b4f2e,0 0 0 13px #3a2a18,inset 0 10px 30px #000a;
   background:#1a140c}
-canvas#game{display:block;width:100%;height:100%;cursor:none}
+canvas#game{display:block;width:100%;height:100%;cursor:none;touch-action:none;-webkit-tap-highlight-color:transparent}
 #coinHud{position:absolute;top:10px;right:18px;font:800 30px 'Segoe UI',system-ui,sans-serif;
   color:#ffd23f;letter-spacing:1px;pointer-events:none;
   text-shadow:2px 2px 0 #6b3d00,-2px 2px 0 #6b3d00,2px -2px 0 #6b3d00,-2px -2px 0 #6b3d00,0 3px 0 #3a2000,3px 3px 6px #000a;
@@ -48,6 +48,20 @@ canvas#game{display:block;width:100%;height:100%;cursor:none}
 .tabb .ico{font-size:32px;line-height:1;opacity:.6}
 .tabb.on .ico{opacity:1}
 .botb .ico{font-size:21px;line-height:1}
+/* ── Tutorial / hướng dẫn ── */
+#ovTut{z-index:30;background:#0b0d13f7;align-items:center;justify-content:center;padding:16px}
+#tutCard{width:min(440px,94vw);background:linear-gradient(#1c2130,#141824);border:3px solid #6b4f2e;border-radius:18px;padding:22px 22px 18px;box-shadow:0 18px 50px #000a,inset 0 1px 0 #ffffff14;text-align:center}
+#tutIcon{font-size:60px;line-height:1;margin:2px 0 6px;filter:drop-shadow(0 4px 6px #0007)}
+#tutStep{font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:#c99a3a;font-weight:800}
+#tutCard h2{font-size:22px;margin:6px 0 8px;color:#ffd23f;text-shadow:0 2px 3px #000;text-wrap:balance}
+#tutText{font-size:14.5px;line-height:1.6;color:#d7dcea;min-height:104px}
+#tutDots{display:flex;gap:7px;justify-content:center;margin:14px 0 12px}
+#tutDots span{width:8px;height:8px;border-radius:50%;background:#3a4152;cursor:pointer;transition:background .15s,transform .15s}
+#tutDots span.on{background:#ffc94a;transform:scale(1.3)}
+#tutNav{display:flex;gap:8px;align-items:center}
+#tutNav .btn{padding:9px 15px;font-size:14px}
+#tutNav .grow{flex:1}
+@media(max-width:480px){#tutIcon{font-size:50px}#tutCard h2{font-size:19px}#tutText{font-size:13.5px}}
 #tabtitle{display:flex;align-items:center;justify-content:center;gap:12px;color:#ffd23f;font-size:15px;font-weight:700;text-shadow:0 2px 3px #000}
 #tabtitle .fl{color:#c99a3a;font-size:20px}
 #tabtitle .fl.fr{transform:scaleX(-1)}
@@ -123,6 +137,7 @@ kbd{background:var(--panel2);border:1px solid var(--line);border-radius:4px;padd
       <button id="bSteam" class="botb" title="Về game"><span class="ico">📖</span></button>
       <button id="bInfo" class="botb" title="Nguồn &amp; giấy phép"><span class="ico">🏆</span></button>
       <button id="bSet" class="botb" title="Cài đặt"><span class="ico">⚙️</span></button>
+      <button id="bHelp" class="botb" title="Cách chơi"><span class="ico">❓</span></button>
     </div>
   </div>
 </div>
@@ -163,7 +178,23 @@ kbd{background:var(--panel2);border:1px solid var(--line);border-radius:4px;padd
   <div class="ovbody"><div class="doc" id="docBody"></div></div>
 </div>
 
-<script src="cat_assets.js?v=12"></script>
+<div class="ov" id="ovTut">
+  <div id="tutCard">
+    <div id="tutIcon">👋</div>
+    <div id="tutStep"></div>
+    <h2 id="tutTitle"></h2>
+    <p id="tutText"></p>
+    <div id="tutDots"></div>
+    <div id="tutNav">
+      <button class="btn" id="bTutSkip">Bỏ qua</button>
+      <span class="grow"></span>
+      <button class="btn" id="bTutPrev">‹</button>
+      <button class="btn acc" id="bTutNext">Tiếp ›</button>
+    </div>
+  </div>
+</div>
+
+<script src="cat_assets.js?v=13"></script>
 <script>
 "use strict";
 /* ══════════════════════════════════════════════════════════════════════════
@@ -420,7 +451,7 @@ const DEF_STATE = ()=>({
   upgLv:{},         // key -> level
   nodes:[],         // index node đã mở
   playtime:0, rebirths:0, bossN:0,
-  set:{shake:false, hideMoney:false, cursor:45, demo:true, lang:"vi", theme:"cat", themeChosen:false, shakeChosen:false},
+  set:{shake:false, hideMoney:false, cursor:45, demo:true, lang:"vi", theme:"cat", themeChosen:false, shakeChosen:false, tutDone:false},
 });
 let S = DEF_STATE();
 
@@ -1218,8 +1249,7 @@ function drawCursor(){
 /* ─────────────────────────── 8. INPUT ─────────────────────────── */
 cv.addEventListener("mousemove",e=>{const p=worldFromEvent(e);mouse.x=p.x;mouse.y=p.y;mouse.moved=true;});
 cv.addEventListener("mouseleave",()=>{mouse.x=-999;mouse.y=-999;});
-cv.addEventListener("mousedown",e=>{
-  const p=worldFromEvent(e);
+function tapAt(p){
   // Gift
   for(let i=gifts.length-1;i>=0;i--) if(dist2(p.x,p.y,gifts[i].x,gifts[i].y-14)<28*28){ openGift(gifts[i]); gifts.splice(i,1); return; }
   // Thief
@@ -1235,7 +1265,12 @@ cv.addEventListener("mousedown",e=>{
   let best=null,bd=hitR*hitR;
   for(const h of humans){ if(h.state==="down"||h.sleep) continue; const d=dist2(p.x,p.y,h.x,h.y-hitY); if(d<bd){bd=d;best=h;} }
   if(best){ knock(best,"click"); fx.push({k:"punch",x:best.x,y:best.y-(isCat()?40:0),t:.25}); doShake(2); }
-});
+}
+cv.addEventListener("mousedown",e=>{ tapAt(worldFromEvent(e)); });
+// ── Cảm ứng (mobile): chạm mèo + kéo ngón tay để quét nhặt cứt ──
+cv.addEventListener("touchstart",e=>{ if(e.cancelable) e.preventDefault(); const tp=e.touches[0]; if(!tp) return; const p=worldFromEvent(tp); mouse.x=p.x; mouse.y=p.y; mouse.moved=true; tapAt(p); },{passive:false});
+cv.addEventListener("touchmove", e=>{ if(e.cancelable) e.preventDefault(); const tp=e.touches[0]; if(!tp) return; const p=worldFromEvent(tp); mouse.x=p.x; mouse.y=p.y; mouse.moved=true; },{passive:false});
+cv.addEventListener("touchend", ()=>{ mouse.x=-999; mouse.y=-999; });
 
 /* ─────────────────────────── 9. GIAO DIỆN ─────────────────────────── */
 let tab="items";
@@ -1547,10 +1582,10 @@ function applyLang(){
 }
 function renderDoc(){
   document.getElementById("docBody").innerHTML=`
-  <p><b>Fluffy Cats — Idle Clicker</b>. Chạm mèo → mèo giật mình bật lên & rụng lông → rê chuột nhặt lông = tiền. Mua thêm mèo, nâng cấp, mở cây kỹ năng, đánh boss chuột.</p>
+  <p><b>Fluffy Cats — Idle Clicker</b>. Chạm mèo → mèo giật mình bật lên & rơi ra cục cứt 💩 → rê chuột/kéo tay nhặt cứt = tiền. Mua thêm mèo, nâng cấp, mở cây kỹ năng, đánh boss chuột.</p>
   <h3>Điều khiển</h3><ul>
-    <li><kbd>Chạm/Click</kbd> vào mèo để nó bật nhảy + rụng lông · rê chuột quét qua lông dưới đất để nhặt</li>
-    <li><kbd>Click</kbd> vào Quà / Kẻ trộm / Boss chuột để tương tác · mua Robot hút bụi để tự nhặt lông</li>
+    <li><kbd>Chạm/Click</kbd> vào mèo để nó bật nhảy + rơi ra cục cứt · rê chuột/kéo ngón tay quét qua cứt dưới đất để nhặt</li>
+    <li><kbd>Click</kbd> vào Quà / Kẻ trộm / Boss chuột để tương tác · mua Robot hút bụi để tự nhặt cứt</li>
     <li>Cây kỹ năng: kéo để di chuyển, lăn chuột để zoom, click node để mở (click lại để gỡ điểm)</li>
     <li><kbd>Esc</kbd> đóng cửa sổ · thêm <b>?reset</b> vào URL để chơi lại từ đầu</li>
   </ul>
@@ -1558,10 +1593,53 @@ function renderDoc(){
     <li>Mèo: <b>Pet Cats Pack</b> — LuizMelo (CC0)</li>
     <li>Chó: <b>Pet Dogs Pack</b> — LuizMelo (CC0)</li>
     <li>Chuột: <b>RATS!</b> — Micax (free, credit)</li>
-    <li>Lông, robot hút bụi, nền, hiệu ứng, code: tự làm (original)</li>
+    <li>Cục cứt, robot hút bụi, nền, hiệu ứng, code: tự làm (original)</li>
   </ul>
   <p style="color:#8b93ab;font-size:12px">Game gốc lấy cảm hứng từ thể loại incremental/idle clicker. Toàn bộ art trong bản này là CC0/miễn phí hoặc tự vẽ.</p>`;
 }
+
+/* ─────────────────────────── HƯỚNG DẪN (Tutorial) ─────────────────────────── */
+const TUT=[
+ {ic:"👋", vi:["Chào mừng đến Fluffy Cats!","Game nuôi mèo nhàn rỗi: mèo rơi ra cục cứt 💩, bạn nhặt cứt để kiếm xu rồi mua thêm mèo. Lướt qua vài bước hướng dẫn nhanh nhé!"],
+           en:["Welcome to Fluffy Cats!","A cozy idle game: cats drop poop 💩, you sweep it up for coins and buy more cats. Swipe through this quick guide!"]},
+ {ic:"🐱", vi:["Chạm vào mèo","Chạm (hoặc click) vào mèo để nó giật mình bật nhảy lên và rơi ra cục cứt 💩. Lưu ý: chỉ chạm thôi thì CHƯA ra tiền ngay đâu!"],
+           en:["Tap the cats","Tap (or click) a cat to startle it — it jumps up and drops poop 💩. Note: tapping alone does NOT give coins yet!"]},
+ {ic:"🧹", vi:["Nhặt cứt = tiền","Rê con trỏ (hoặc kéo ngón tay) quét qua đám cứt trên sàn để nhặt — mỗi cục cứt sẽ +xu. Cứt màu khác nhau có mệnh giá khác nhau."],
+           en:["Sweep the poop = coins","Move the cursor (or drag your finger) across the poop on the floor to collect it — each pickup adds coins. Different poop colors are worth different amounts."]},
+ {ic:"🛒", vi:["Mua thêm mèo","Mở tab 🐱 bên phải để mua mèo. Càng nhiều mèo càng nhiều cứt; mèo cao cấp rơi ra cứt giá trị cao hơn."],
+           en:["Buy more cats","Open the 🐱 tab on the right to buy cats. More cats = more poop, and fancier cats drop more valuable poop."]},
+ {ic:"⬆️", vi:["Nâng cấp","Tab ⬆️ để nâng cấp: tăng thu nhập, tốc độ và sức mạnh cho mèo lẫn trợ thủ."],
+           en:["Upgrades","The ⬆️ tab upgrades income, speed and the power of your cats and helpers."]},
+ {ic:"🐶", vi:["Trợ thủ: chó & robot","Mua Chó (lấy đà chạy thẳng, làm cả hàng mèo giật mình) và Robot hút bụi (tự đi nhặt cứt giúp bạn) trong cửa hàng."],
+           en:["Helpers: dogs & vacuum","Buy Dogs (they charge across and startle whole rows of cats) and a Robot Vacuum (auto-collects poop for you) from the shop."]},
+ {ic:"🌳", vi:["Cây kỹ năng","Nút đỏ “Cây kỹ năng” mở bảng skill — kiếm điểm để mở các node buff mạnh. Có thể Chuyển sinh ♻️ để chơi lại từ đầu nhưng mạnh hơn."],
+           en:["Skill Tree","The red “Skill Tree” button opens the skill board — earn points to unlock powerful nodes. You can Rebirth ♻️ to restart stronger."]},
+ {ic:"🐀", vi:["Boss chuột","Thỉnh thoảng chuột khổng lồ xuất hiện (chuột đen ra trước!). Chạm liên tục để hạ nó và nhận thưởng lớn. Khi boss đang ở màn, giá trị xu tạm giảm một nửa."],
+           en:["Rat bosses","Now and then a giant rat appears (the black one comes first!). Tap it repeatedly to defeat it for a big reward. While a boss is on screen, coin value is temporarily halved."]},
+ {ic:"🎉", vi:["Sẵn sàng chơi!","Xong rồi! Dùng 📊 xem chỉ số, ⚙️ đổi ngôn ngữ/cài đặt, 📖 🏆 xem thông tin. Bấm ❓ dưới cùng để mở lại hướng dẫn này bất cứ lúc nào. Chúc chơi vui!"],
+           en:["You're ready!","That's it! Use 📊 for stats, ⚙️ for language/settings, 📖 🏆 for info. Tap ❓ at the bottom to reopen this guide anytime. Have fun!"]},
+];
+let tutI=0;
+function renderTut(){
+  const s=TUT[tutI], L2=s[lang]||s.vi;
+  document.getElementById("tutIcon").textContent=s.ic;
+  document.getElementById("tutStep").textContent=(lang==="vi"?"Bước ":"Step ")+(tutI+1)+" / "+TUT.length;
+  document.getElementById("tutTitle").textContent=L2[0];
+  document.getElementById("tutText").textContent=L2[1];
+  const dl=document.getElementById("tutDots");
+  dl.innerHTML=TUT.map((_,i)=>`<span class="${i===tutI?"on":""}" data-i="${i}"></span>`).join("");
+  dl.querySelectorAll("span").forEach(d=>d.onclick=()=>{ tutI=+d.dataset.i; renderTut(); });
+  document.getElementById("bTutPrev").style.visibility = tutI===0 ? "hidden":"visible";
+  const last=tutI===TUT.length-1;
+  document.getElementById("bTutNext").textContent = last ? (lang==="vi"?"Bắt đầu 🎉":"Start 🎉") : (lang==="vi"?"Tiếp ›":"Next ›");
+  document.getElementById("bTutSkip").textContent = lang==="vi"?"Bỏ qua":"Skip";
+}
+function showTut(i){ tutI=i||0; ov("ovTut",true); renderTut(); }
+function closeTut(){ ov("ovTut",false); if(!S.set.tutDone){ S.set.tutDone=true; save(); } }
+document.getElementById("bTutNext").onclick=()=>{ if(tutI>=TUT.length-1) closeTut(); else { tutI++; renderTut(); } };
+document.getElementById("bTutPrev").onclick=()=>{ if(tutI>0){ tutI--; renderTut(); } };
+document.getElementById("bTutSkip").onclick=closeTut;
+document.getElementById("bHelp").onclick=()=>showTut(0);
 
 /* ─────────────────────────── 12. KHỞI ĐỘNG ─────────────────────────── */
 function skinUI(){
@@ -1594,6 +1672,7 @@ document.getElementById("cHide").checked=S.set.hideMoney;
 document.getElementById("rCursor").value=S.set.cursor;
 document.getElementById("cDemo").checked=S.set.demo;
 resize(); startSession(); skinUI(); applyLang(); updateHUD();
+if(!S.set.tutDone) showTut(0);   // lần đầu chơi: hiện hướng dẫn
 new ResizeObserver(()=>{resize();}).observe(document.getElementById("stage"));
 new ResizeObserver(()=>{treeResize();}).observe(document.getElementById("treeCv").parentElement);
 addEventListener("beforeunload",save);
