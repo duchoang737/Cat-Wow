@@ -617,13 +617,19 @@ function mkHuman(tier,x,y){
 }
 function humAnimState(h){ return h.state==="down"?"down": h.sleep?"sleep": h.state==="walk"?"walk":"idle"; }
 function retargetHuman(h){
-  // phủ TOÀN màn: ưu tiên đích XA + chỗ ÍT ĐÔNG (để mèo tản ra mép/góc)
+  // ~48% nhắm HẲN về sát 1 trong 4 GÓC -> mèo phủ cả góc, không tụ giữa
+  if(Math.random()<0.48){
+    const left=Math.random()<0.5, top=Math.random()<0.5;
+    h.tx = left ? rnd(40,W*0.17) : rnd(W*0.83,W-40);
+    h.ty = top  ? rnd(30,H*0.19) : rnd(H*0.81,H-30);
+    return;
+  }
+  // còn lại: điểm ngẫu nhiên TOÀN màn, chỉ ưu tiên chỗ ÍT ĐÔNG (KHÔNG ưu tiên xa -> đỡ dồn qua giữa)
   let best=null,bs=-1e9;
   for(let i=0;i<6;i++){
     const px=rnd(36,W-36), py=rnd(30,H-30);
-    let crowd=0; for(const o of humans) if(o!==h && dist2(px,py,o.x,o.y)<130*130) crowd++;
-    const far=Math.hypot(px-h.x,py-h.y);
-    const score=far - crowd*260;
+    let crowd=0; for(const o of humans) if(o!==h && dist2(px,py,o.x,o.y)<120*120) crowd++;
+    const score=-crowd*300 + rnd(0,120);
     if(score>bs){ bs=score; best={x:px,y:py}; }
   }
   h.tx=best.x; h.ty=best.y;
@@ -681,7 +687,7 @@ function collectCoin(c, byCollector){
   let v=c.v;
   if(byCollector && Math.random()<G.collectorLucky){ v*=10; toast(t("jackpot")); }
   S.coin+=v; S.totalCoin+=v; S.treeExp+=v;
-  if(!S.set.hideMoney) labels.push({x:c.x,y:c.y-c.z-8,v:v,t:0.85,lucky:c.lucky,jack:c.jack});  // +X hiện KHI NHẶT được lông
+  if(!S.set.hideMoney) labels.push({x:c.x,y:c.y-34,v:v,t:1.15,lucky:c.lucky,jack:c.jack});  // +tiền hiện NỔI LÊN TRÊN khi nhặt cứt (cao hơn để không bị ngón tay che)
   checkTreeLevel();
 }
 function checkTreeLevel(){
@@ -818,7 +824,7 @@ function updateDog(a,dt){
     a.t-=dt;
     if(a.t<=0){ // lấy đà
       a.st="windup"; a.t=0.5;
-      a.tx=rnd(90,W-90); a.ty=rnd(90,H-90);
+      a.tx=rnd(55,W-55); a.ty=rnd(55,H-55);   // đích rộng ra tới sát góc
       const dx=a.tx-a.x, dy=a.ty-a.y, d=Math.hypot(dx,dy)||1; a.dirx=dx/d; a.diry=dy/d; a.face=dx<0?-1:1;
     }
     return;
@@ -1240,12 +1246,17 @@ function drawFx(f){
     cx.strokeStyle="#fb923c88"; cx.lineWidth=2; cx.beginPath(); cx.arc(f.x,f.y,170,0,6.283); cx.stroke(); }
 }
 function drawLabel(l){
-  cx.font="bold 15px 'Segoe UI',sans-serif"; cx.textAlign="center";
-  cx.globalAlpha=clamp(l.t,0,1);
-  cx.lineWidth=3; cx.strokeStyle="#000a";
-  const s="+"+fmt(l.v)+(l.jack?" x10":l.lucky?" ★":"");
-  cx.strokeText(s,l.x,l.y); cx.fillStyle=l.jack?"#f472b6":l.lucky?"#4ade80":"#ffc94a";
-  cx.fillText(s,l.x,l.y); cx.globalAlpha=1;
+  const pop = l.t>1.0 ? 1+(l.t-1.0)*2.2 : 1;          // bung to nhẹ lúc mới hiện
+  const sz = Math.round(19*Math.min(pop,1.35));
+  cx.save(); cx.textAlign="center"; cx.textBaseline="middle";
+  cx.font="bold "+sz+"px 'Segoe UI',sans-serif";
+  cx.globalAlpha=clamp(l.t*1.4,0,1);                   // giữ rõ lâu rồi mới mờ dần
+  cx.lineWidth=4; cx.strokeStyle="#000c"; cx.lineJoin="round";
+  const s="+"+fmt(l.v)+(l.jack?" ×10":l.lucky?" ★":"");
+  cx.strokeText(s,l.x,l.y);
+  cx.fillStyle=l.jack?"#f472b6":l.lucky?"#4ade80":"#ffd23f";
+  cx.fillText(s,l.x,l.y);
+  cx.restore();
 }
 function drawCursor(){
   if(mouse.x<-500) return;
