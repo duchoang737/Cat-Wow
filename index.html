@@ -181,7 +181,7 @@ kbd{background:var(--panel2);border:1px solid var(--line);border-radius:4px;padd
   <div class="ovbody"><div class="doc" id="docBody"></div></div>
 </div>
 
-<script src="cat_assets.js?v=15"></script>
+<script src="cat_assets.js?v=16"></script>
 <script>
 "use strict";
 /* ══════════════════════════════════════════════════════════════════════════
@@ -1028,7 +1028,7 @@ function render(){
   // +tiền vẽ Ở TOẠ ĐỘ MÀN HÌNH (cỡ chữ cố định) -> luôn rõ trên mọi màn hình, kể cả mobile zoom nhỏ
   if(!S.set.hideMoney){ const ox=view.ox+sx, oy=view.oy+sy; for(const l of labels) drawLabel(l,ox,oy,view.s); }
 }
-const CATBG_COUNT=5;
+const CATBG_COUNT=6;
 function drawGround(){
   if(isCat()){
     const bk="catbg"+((S.rebirths||0)%CATBG_COUNT);        // mỗi lần Chuyển sinh -> nền mới
