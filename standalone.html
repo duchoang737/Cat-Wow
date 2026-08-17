@@ -318,9 +318,9 @@ const L = {
     Map3_Des:"Người bị ngã có 2% cơ hội nhận số xu gấp 10 lần.", Map4_Des:"Bắt đầu trò chơi với 1 Vua.",
     Commoner:"Dân Thường", Clown:"Chú Hề", Soldier:"Lính", Noble:"Quý Tộc", Knight:"Hiệp Sĩ", King:"Vua",
     Bull:"Bò Tót", Elephant:"Voi", Collector:"Máy Nhặt",
-    BaseValue:"{0} rơi ra +{1}$", ValueBonus:"Giá trị {0} +{1}%", Clumsy:"Mỗi 10s, {0} có {1}% tự ngã",
-    Energy:"Thời lượng {0} +{1}s", Size:"Kích thước {0} +{1}%",
-    Radius:"Bán kính thu hoạch +{0}%", Speed:"Tốc độ di chuyển +{0}%",
+    BaseValue:"Rơi ra cứt +{0}$", ValueBonus:"Giá trị mỗi lần +{0}%", Clumsy:"Mỗi 10s có {0}% tự giật mình",
+    Energy:"Thời lượng chạy +{0}s", Size:"Kích thước +{0}%",
+    Radius:"Bán kính hút cứt +{0}%", Speed:"Tốc độ di chuyển +{0}%",
     rebirthQ:"Chuyển sinh sẽ reset tiền, đơn vị và nâng cấp. Điểm kỹ năng được giữ. Tiếp tục?",
     resetC:"Xoá toàn bộ tiến trình?", thiefKill:"Hạ Thief! Human +400% trong 30s",
     giftGot:"Quà: +{0}", jackpot:"JACKPOT x10!", bossDown:"Hạ Boss!",
@@ -340,9 +340,9 @@ const L = {
     Map3_Des:"The person who falls has a 2% chance of receiving 10 times the coins.", Map4_Des:"Start the game with 1 King.",
     Commoner:"Commoner", Clown:"Clown", Soldier:"Soldier", Noble:"Noble", Knight:"Knight", King:"King",
     Bull:"Bull", Elephant:"Elephant", Collector:"Collector",
-    BaseValue:"{0} drops +{1}$", ValueBonus:"{0} drop value +{1}%", Clumsy:"Every 10s, {0} has a {1}% chance to fall",
-    Energy:"{0} duration +{1}s", Size:"{0} size +{1}%",
-    Radius:"Harvest range +{0}%", Speed:"Movement speed +{0}%",
+    BaseValue:"Drops +{0}$ poop", ValueBonus:"Value each +{0}%", Clumsy:"Every 10s, {0}% self-startle",
+    Energy:"Charge duration +{0}s", Size:"Size +{0}%",
+    Radius:"Poop-suction range +{0}%", Speed:"Move speed +{0}%",
     rebirthQ:"Reincarnation resets coins, units and upgrades. Skill points are kept. Continue?",
     resetC:"Erase all progress?", thiefKill:"Thief down! Human +400% for 30s",
     giftGot:"Gift: +{0}", jackpot:"JACKPOT x10!", bossDown:"Boss down!",
@@ -1369,31 +1369,26 @@ const UPG_GROUPS=[
   {n:"Elephant",keys:["Elephant_Energy","Elephant_Size"]},
   {n:"Collector",keys:["Collector_Radius","Collector_Speed"]},
 ];
+const KINDLABEL={
+  vi:{BaseValue:"Giá trị",ValueBonus:"Thưởng %",Clumsy:"Tự giật mình",Energy:"Năng lượng",Size:"Kích cỡ",Radius:"Bán kính",Speed:"Tốc độ"},
+  en:{BaseValue:"Value",ValueBonus:"Bonus %",Clumsy:"Auto-startle",Energy:"Energy",Size:"Size",Radius:"Radius",Speed:"Speed"}
+};
 function upgDes(key){
   const [unit,kind]=key.split("_");
   const tb=UPG[key], lv=upgLv(key);
   const next=tb[Math.min(lv+1,tb.length-1)][1];
-  const nm=t(unit);
-  if(kind==="BaseValue") return t("BaseValue",nm,fmt(next));
-  if(kind==="ValueBonus") return t("ValueBonus",nm,Math.round(next*100));
-  if(kind==="Clumsy") return t("Clumsy",nm,Math.round(next*100));
-  if(kind==="Energy") return t("Energy",nm,next);
-  if(kind==="Size") return t("Size",nm,Math.round(next*100));
+  if(kind==="BaseValue") return t("BaseValue",fmt(next));
+  if(kind==="ValueBonus") return t("ValueBonus",Math.round(next*100));
+  if(kind==="Clumsy") return t("Clumsy",Math.round(next*100));
+  if(kind==="Energy") return t("Energy",next);
+  if(kind==="Size") return t("Size",Math.round(next*100));
   if(kind==="Radius") return t("Radius",Math.round(next*100));
   if(kind==="Speed") return t("Speed",Math.round(next*100));
   return key;
 }
-// Đơn vị đã "được mở" chưa (khớp logic hiện trong shop): mèo đầu luôn mở; mèo bậc sau mở khi sở hữu bậc trước
-function unitRevealed(k){
-  const idx=TIERS.indexOf(k);
-  if(idx===0) return true;
-  if(idx>0) return itemLv(TIERS[idx-1])>=1;
-  if(k==="Elephant") return treeHas("Tree_Elephant_Unlock");   // Chó To mở qua cây kỹ năng
-  return true;                                                  // Chó Becgie, Robot: luôn mở
-}
 function renderUpg(box){
   for(const g of UPG_GROUPS){
-    const shown = unitRevealed(g.n);                // nâng cấp CHỈ hiện khi đơn vị đó đã ĐƯỢC MỞ
+    const shown = itemLv(g.n) >= 1;                 // nâng cấp CHỈ hiện khi ĐÃ SỞ HỮU (mua ≥1) đơn vị đó
     for(const key of g.keys){
       const el=rowEl(box,"u_"+key);
       el.style.display = shown ? "" : "none";
@@ -1416,7 +1411,7 @@ function renderUpg(box){
         el._built=true;
       }
       el.classList.remove("locked");
-      el._nm.textContent=dispName(g.n)+" · "+key.split("_")[1];
+      el._nm.textContent=dispName(g.n)+" · "+(KINDLABEL[lang][key.split("_")[1]]||key.split("_")[1]);
       el._lv.textContent=lv+" / "+(tb.length-1);
       el._des.textContent=upgDes(key);
       el._btn.disabled=!afford;
