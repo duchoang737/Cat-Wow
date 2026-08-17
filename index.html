@@ -687,7 +687,7 @@ function collectCoin(c, byCollector){
   let v=c.v;
   if(byCollector && Math.random()<G.collectorLucky){ v*=10; toast(t("jackpot")); }
   S.coin+=v; S.totalCoin+=v; S.treeExp+=v;
-  if(!S.set.hideMoney) labels.push({x:c.x,y:c.y,v:v,t:1.15,lucky:c.lucky,jack:c.jack});  // +tiền khi nhặt phân (vẽ ở toạ độ MÀN HÌNH, cỡ cố định — xem drawLabel)
+  if(byCollector && !S.set.hideMoney) labels.push({x:c.x,y:c.y,v:v,t:1.15,lucky:c.lucky,jack:c.jack});  // robot nhặt: hiện +tiền tại robot (người chơi đã hiện ngay lúc chạm)
   checkTreeLevel();
 }
 function checkTreeLevel(){
@@ -893,7 +893,10 @@ function updateCoins(dt){
       if(c.z<0){ c.z=0; c.vz*=-0.42; if(!c.landed){ c.landed=true; c.settle=0.4; } if(Math.abs(c.vz)<25) c.vz=0; }   // chạm đất
       if(c.settle>0) c.settle-=dt;                                          // nằm yên 1 nhịp mới nhặt được
       c.x=clamp(c.x,8,W-8); c.y=clamp(c.y,8,H-8);
-      if(c.landed && c.settle<=0 && mouse.moved && mouse.x>-500 && dist2(c.x,c.y,mouse.x,mouse.y)<hov*hov){ c.st=1; c.by=0; }
+      if(c.landed && c.settle<=0 && mouse.moved && mouse.x>-500 && dist2(c.x,c.y,mouse.x,mouse.y)<hov*hov){
+        c.st=1; c.by=0;
+        if(!S.set.hideMoney) labels.push({x:c.x,y:c.y,v:c.v,t:1.15,lucky:c.lucky,jack:c.jack});   // hiện +tiền NGAY khi chạm vào phân, tại chỗ đó
+      }
     } else {
       c.t+=dt*3.4;
       const tx=c.by?c.tx:mouse.x, ty=c.by?c.ty:mouse.y;
@@ -1470,6 +1473,20 @@ function treeResize(){
 }
 function treeCenter(){ tview.init=0; treeResize(); }
 function t2s(x,y){ return {x:x*GRID*tview.s+tview.ox, y:-y*GRID*tview.s+tview.oy}; }
+const NODE_ICON={
+  Tree_GoldenAura_count:"✨", Tree_GoldenAura_radius:"✨",
+  Tree_LuckyThief_count:"😾",
+  Tree_Noble_Unlock:"⬛", Tree_Knight_Unlock:"🐱", Tree_King_Unlock:"👑", Tree_Elephant_Unlock:"🐕",
+  Tree_Gift_Unlock:"🎁", Tree_First_Time_Gift:"🎁",
+  Tree_Lightning_Unlock:"⚡", Tree_Lightning_cooldown:"⚡",
+  Tree_Rocket_Unlock:"☄️", Tree_Rocket_cooldown:"☄️",
+  Tree_ChainReaction_Unlock:"🔗", Tree_ChainReaction_Percent:"🔗", Tree_ChainReaction_radius:"🔗",
+  Tree_AutoBreaker_Unlock:"👆", Tree_LuckyFall_Unlock:"🍀",
+  Tree_Animal_Reward:"🐶", Tree_Animal_Reward_Bonus:"🐶", Tree_Collector_Lucky:"🤖",
+  Tree_Guardian_Count:"🛡️", Tree_Inheritance:"♻️", Tree_Golden_Punch:"🌟",
+  Tree_Commoner_value:"💰", Tree_Clown_value:"💰", Tree_Soldier_value:"💰",
+  Tree_Noble_value:"💰", Tree_Knight_value:"💰", Tree_King_value:"💰",
+};
 function drawTree(){
   const r=tcv.parentElement.getBoundingClientRect();
   tcx.setTransform(devicePixelRatio,0,0,devicePixelRatio,0,0);
@@ -1504,23 +1521,22 @@ function drawTree(){
     tcx.strokeStyle = n.root?"#a78bfa" : dl?"#6b4a7a" : open?"#a78bfa" : (canUnlock(n)&&S.treePoint>0)?"#4ade80":"#39405a";
     tcx.stroke();
     if(hoverNode===n){ tcx.strokeStyle="#fff"; tcx.lineWidth=2; tcx.beginPath(); tcx.arc(p.x,p.y,R+4,0,6.283); tcx.stroke(); }
-    // icon gốc của node
-    const ic=n.root?null:UIMG["n_"+n.k];
-    if(ic&&ic._ok&&R>14){
-      const is=R*1.15; tcx.imageSmoothingEnabled=false;
-      tcx.save(); if(dl||(!open&&!(canUnlock(n)&&S.treePoint>0))) tcx.globalAlpha=.55;
-      tcx.drawImage(ic,p.x-is/2,p.y-is/2-R*.12,is,is); tcx.restore();
-      if(R>18){
-        if(!n.root&&!dl){ tcx.fillStyle=open?"#c4b5fd":"#6b7490"; tcx.textAlign="center"; tcx.font="600 "+Math.max(7,R*.2)+"px sans-serif"; tcx.fillText(open?t("unlocked"):"1 ⬦",p.x,p.y+R*.66); }
-        if(dl){ tcx.fillStyle="#b58ac9"; tcx.textAlign="center"; tcx.font=Math.max(7,R*.18)+"px sans-serif"; tcx.fillText("🔒",p.x,p.y+R*.66); }
+    // icon node = EMOJI (bản clean không dùng ảnh ui.js gốc) — hiện được cả khi zoom nhỏ
+    if(R>9){
+      const em=n.root?"⭐":(NODE_ICON[n.k]||"◆");
+      tcx.save();
+      if(dl||(!n.root&&!open&&!(canUnlock(n)&&S.treePoint>0))) tcx.globalAlpha=.5;
+      tcx.textAlign="center"; tcx.textBaseline="middle";
+      tcx.font=Math.round(R*0.95)+"px 'Segoe UI Emoji','Segoe UI Symbol','Noto Color Emoji',sans-serif";
+      tcx.fillText(em,p.x,p.y);
+      tcx.restore();
+      // badge trạng thái: ✓ đã mở · 🔒 khoá demo
+      if(!n.root && (open||dl) && R>13){
+        tcx.textAlign="center"; tcx.textBaseline="middle";
+        tcx.font="700 "+Math.max(9,R*.5)+"px 'Segoe UI Emoji',sans-serif";
+        tcx.fillStyle=open?"#4ade80":"#b58ac9";
+        tcx.fillText(open?"✓":"🔒",p.x+R*0.66,p.y-R*0.62);
       }
-    } else if(R>18){
-      tcx.fillStyle=open?"#e9d5ff":dl?"#7c6b86":"#8b93ab";
-      tcx.font="600 "+Math.max(8,R*.24)+"px 'Segoe UI',sans-serif"; tcx.textAlign="center";
-      const nm=n.root?"ROOT":shortName(n.k);
-      wrapText(tcx,nm,p.x,p.y-R*.05,R*1.7,R*.28);
-      if(!n.root&&!dl){ tcx.fillStyle=open?"#a78bfa":"#6b7490"; tcx.font=Math.max(7,R*.2)+"px sans-serif"; tcx.fillText(open?t("unlocked"):"1 ⬦",p.x,p.y+R*.62); }
-      if(dl){ tcx.fillStyle="#6b4a7a"; tcx.font=Math.max(7,R*.18)+"px sans-serif"; tcx.fillText("DEMO 🔒",p.x,p.y+R*.62); }
     }
   }
 }
