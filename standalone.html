@@ -52,12 +52,13 @@ canvas#game{display:block;width:100%;height:100%;cursor:none;touch-action:none;-
 .tabb.on .ico{opacity:1}
 .botb .ico{font-size:21px;line-height:1}
 /* ── Coach hướng dẫn từng bước (in-game) ── */
-#coach{position:absolute;left:50%;bottom:14px;transform:translateX(-50%);max-width:92%;
-  display:none;align-items:center;gap:10px;padding:11px 16px;border-radius:14px;
-  background:linear-gradient(#2a2038,#191426f2);border:2px solid #ffc94a;color:#fff5db;
-  font-size:14.5px;font-weight:600;line-height:1.35;text-align:center;
-  box-shadow:0 8px 26px #000a,0 0 0 3px #ffc94a22;z-index:15}
-#coach.on{display:flex;animation:coachPop .25s ease}
+#coach{position:absolute;left:50%;bottom:16px;transform:translateX(-50%);max-width:94%;
+  display:none;align-items:center;gap:11px;padding:13px 18px;border-radius:15px;
+  background:linear-gradient(#2a2038,#191426f7);border:2px solid #ffc94a;color:#fff5db;
+  font-size:15.5px;font-weight:700;line-height:1.4;text-align:center;
+  box-shadow:0 8px 26px #000b,0 0 0 3px #ffc94a22;z-index:15}
+#coach.on{display:flex;animation:coachPop .25s ease, coachGlow 1.7s ease-in-out .3s infinite}
+@keyframes coachGlow{0%,100%{box-shadow:0 8px 26px #000b,0 0 0 3px #ffc94a22}50%{box-shadow:0 8px 26px #000b,0 0 0 3px #ffc94a66,0 0 22px 3px #ffc94a88}}
 #coach #coachOk{background:#ffc94a;color:#3a2a08;border:none;border-radius:9px;padding:7px 13px;font-weight:800;cursor:pointer;white-space:nowrap}
 @keyframes coachPop{from{opacity:0;transform:translate(-50%,10px)}to{opacity:1;transform:translate(-50%,0)}}
 .tut-hl{animation:tutHl 1s ease-in-out infinite}
@@ -440,7 +441,7 @@ const DEF_STATE = ()=>({
   upgLv:{},         // key -> level
   nodes:[],         // index node đã mở
   playtime:0, rebirths:0, bossN:0, bossKills:0,
-  set:{shake:false, hideMoney:false, cursor:45, demo:true, lang:"vi", theme:"cat", themeChosen:false, shakeChosen:false, tutDone:false},
+  set:{shake:false, hideMoney:false, cursor:45, demo:true, lang:"vi", theme:"cat", themeChosen:false, shakeChosen:false, tutDone:false, tutVer:0},
 });
 let S = DEF_STATE();
 
@@ -1693,6 +1694,7 @@ function renderDoc(){
 
 /* ─────────────────────────── HƯỚNG DẪN từng bước (in-game coach) ─────────────────────────── */
 let tutStat={tapped:false};
+const TUT_VERSION=2;   // tăng số này để hiện lại hướng dẫn cho MỌI người sau update (không mất tiến trình)
 let coachI=-1, coachBase=0;
 const COACH=[
  { hl:"#stage",
@@ -1731,7 +1733,7 @@ function coachEnter(){
   if(st.hl && st.hl!=="#stage"){ const el=document.querySelector(st.hl); if(el) el.classList.add("tut-hl"); }
 }
 function coachStart(){ coachI=0; document.getElementById("coach").classList.add("on"); coachEnter(); }
-function coachStop(){ coachI=-1; document.getElementById("coach").classList.remove("on"); document.querySelectorAll(".tut-hl").forEach(e=>e.classList.remove("tut-hl")); if(!S.set.tutDone){ S.set.tutDone=true; save(); } }
+function coachStop(){ coachI=-1; document.getElementById("coach").classList.remove("on"); document.querySelectorAll(".tut-hl").forEach(e=>e.classList.remove("tut-hl")); S.set.tutDone=true; S.set.tutVer=TUT_VERSION; save(); }
 function coachNext(){ coachI++; if(coachI>=COACH.length){ coachStop(); return; } coachEnter(); }
 function coachTick(){ if(coachI<0) return; const st=COACH[coachI]; if(st.done && st.done()) coachNext(); }
 document.getElementById("coachOk").onclick=coachNext;
@@ -1768,7 +1770,7 @@ document.getElementById("cHide").checked=S.set.hideMoney;
 document.getElementById("rCursor").value=S.set.cursor;
 document.getElementById("cDemo").checked=S.set.demo;
 resize(); startSession(); skinUI(); applyLang(); updateHUD();
-if(!S.set.tutDone) coachStart();   // lần đầu chơi: hướng dẫn từng bước
+if(!S.set.tutDone || (S.set.tutVer||0)<TUT_VERSION) coachStart();   // lần đầu chơi HOẶC sau khi nâng version hướng dẫn
 new ResizeObserver(()=>{resize();}).observe(document.getElementById("stage"));
 new ResizeObserver(()=>{treeResize();}).observe(document.getElementById("treeCv").parentElement);
 addEventListener("beforeunload",save);
