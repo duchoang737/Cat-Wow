@@ -321,9 +321,9 @@ const L = {
     Map3_Des:"Người bị ngã có 2% cơ hội nhận số xu gấp 10 lần.", Map4_Des:"Bắt đầu trò chơi với 1 Vua.",
     Commoner:"Dân Thường", Clown:"Chú Hề", Soldier:"Lính", Noble:"Quý Tộc", Knight:"Hiệp Sĩ", King:"Vua",
     Bull:"Bò Tót", Elephant:"Voi", Collector:"Máy Nhặt",
-    BaseValue:"Rơi ra cứt +{0}$", ValueBonus:"Giá trị mỗi lần +{0}%", Clumsy:"Mỗi 10s có {0}% tự giật mình",
+    BaseValue:"Rơi ra phân +{0}$", ValueBonus:"Giá trị mỗi lần +{0}%", Clumsy:"Mỗi 10s có {0}% tự giật mình",
     Energy:"Thời lượng chạy +{0}s", Size:"Kích thước +{0}%",
-    Radius:"Bán kính hút cứt +{0}%", Speed:"Tốc độ di chuyển +{0}%",
+    Radius:"Bán kính hút phân +{0}%", Speed:"Tốc độ di chuyển +{0}%",
     rebirthQ:"Chuyển sinh sẽ reset tiền, đơn vị và nâng cấp. Điểm kỹ năng được giữ. Tiếp tục?",
     resetC:"Xoá toàn bộ tiến trình?", thiefKill:"Hạ Thief! Human +400% trong 30s",
     giftGot:"Quà: +{0}", jackpot:"JACKPOT x10!", bossDown:"Hạ Boss!",
@@ -354,9 +354,9 @@ const L = {
 // Mô tả node cây — nguyên văn từ bảng localization của bản gốc
 const NODE_DES = {
   vi:{
-    Tree_GoldenAura_count:"Mèo giật mình bên trong Hào Quang Vàng rơi ra cứt +200% giá trị.",
+    Tree_GoldenAura_count:"Mèo giật mình bên trong Hào Quang Vàng rơi ra phân +200% giá trị.",
     Tree_GoldenAura_radius:"Tăng phạm vi Hào Quang Vàng.",
-    Tree_LuckyThief_count:"Hạ Kẻ Trộm → mọi mèo rơi cứt +400% giá trị trong 30 giây.",
+    Tree_LuckyThief_count:"Hạ Kẻ Trộm → mọi mèo rơi phân +400% giá trị trong 30 giây.",
     Tree_Noble_Unlock:"Mở khoá Mèo Đen.", Tree_Knight_Unlock:"Mở khoá Mèo Tuxedo.",
     Tree_King_Unlock:"Mở khoá Mèo Hoàng Gia.", Tree_Elephant_Unlock:"Mở khoá Chó To.",
     Tree_Gift_Unlock:"Thỉnh thoảng có Quà rơi xuống — chạm để mở nhận thưởng ngẫu nhiên.",
@@ -364,24 +364,24 @@ const NODE_DES = {
     Tree_Lightning_cooldown:"Giảm thời gian hồi của Tia Sét.",
     Tree_Rocket_Unlock:"Thiên Thạch tự rơi làm mèo quanh đó giật mình sau mỗi khoảng thời gian.",
     Tree_Rocket_cooldown:"Giảm thời gian hồi của Thiên Thạch.",
-    Tree_ChainReaction_Unlock:"Khi một mèo giật mình, có cơ hội làm mèo gần đó giật mình theo (rơi thêm cứt).",
+    Tree_ChainReaction_Unlock:"Khi một mèo giật mình, có cơ hội làm mèo gần đó giật mình theo (rơi thêm phân).",
     Tree_ChainReaction_Percent:"Tăng tỉ lệ kích hoạt phản ứng dây chuyền.",
     Tree_ChainReaction_radius:"Tăng bán kính lan của dây chuyền.",
     Tree_AutoBreaker_Unlock:"Tự động chạm mèo giúp bạn (không cần bấm tay).",
-    Tree_LuckyFall_Unlock:"Khi mèo giật mình, có 25% cơ hội rơi ra cứt +400% giá trị.",
-    Tree_Animal_Reward:"Chó làm mèo giật mình có cơ hội rơi ra cứt giá trị cao hơn.",
+    Tree_LuckyFall_Unlock:"Khi mèo giật mình, có 25% cơ hội rơi ra phân +400% giá trị.",
+    Tree_Animal_Reward:"Chó làm mèo giật mình có cơ hội rơi ra phân giá trị cao hơn.",
     Tree_Animal_Reward_Bonus:"Tăng mức thưởng khi chó làm mèo giật mình.",
-    Tree_Collector_Lucky:"Cứt do Robot hút bụi nhặt có cơ hội nhận ×10 giá trị.",
+    Tree_Collector_Lucky:"Phân do Robot hút bụi nhặt có cơ hội nhận ×10 giá trị.",
     Tree_Guardian_Count:"Bắt đầu mỗi phiên với thêm 1 Vệ Sĩ (giúp đánh boss chuột).",
     Tree_First_Time_Gift:"Bắt đầu game với sẵn Mèo Hoang, Mèo Tam Thể, Mèo Đen và Mèo Xám.",
     Tree_Inheritance:"Khi Chuyển Sinh, giữ lại 5% số tiền trước đó.",
     Tree_Golden_Punch:"Không chạm mèo nào trong 30 giây → kích hoạt Cú Chạm Vàng 5 giây: nhận ×5 tiền.",
-    Tree_Commoner_value:"Mèo Hoang rơi ra cứt giá trị cao hơn.",
-    Tree_Clown_value:"Mèo Tam Thể rơi ra cứt giá trị cao hơn.",
-    Tree_Soldier_value:"Mèo Xám rơi ra cứt giá trị cao hơn.",
-    Tree_Noble_value:"Mèo Đen rơi ra cứt giá trị cao hơn.",
-    Tree_Knight_value:"Mèo Tuxedo rơi ra cứt giá trị cao hơn.",
-    Tree_King_value:"Mèo Hoàng Gia rơi ra cứt giá trị cao hơn.",
+    Tree_Commoner_value:"Mèo Hoang rơi ra phân giá trị cao hơn.",
+    Tree_Clown_value:"Mèo Tam Thể rơi ra phân giá trị cao hơn.",
+    Tree_Soldier_value:"Mèo Xám rơi ra phân giá trị cao hơn.",
+    Tree_Noble_value:"Mèo Đen rơi ra phân giá trị cao hơn.",
+    Tree_Knight_value:"Mèo Tuxedo rơi ra phân giá trị cao hơn.",
+    Tree_King_value:"Mèo Hoàng Gia rơi ra phân giá trị cao hơn.",
   },
   en:{
     Tree_GoldenAura_count:"Cats startled inside the Golden Aura drop poop worth +200%.",
@@ -682,7 +682,7 @@ function spawnCoins(x,y,total,lucky,jack){
   for(let i=0;i<n;i++){
     if(coins.length>=MAXCOINS) coins.shift();          // RemoveOldestCoin
     const a=rnd(0,6.283), sp=rnd(28,90);               // chỉ văng NHẸ theo phương ngang để không chồng đống
-    coins.push({x,y,vx:Math.cos(a)*sp,vy:Math.sin(a)*sp*0.6,z:0,vz:0,   // z=0,vz=0: cứt NẰM NGAY trên đất, KHÔNG nẩy lên
+    coins.push({x,y,vx:Math.cos(a)*sp,vy:Math.sin(a)*sp*0.6,z:0,vz:0,   // z=0,vz=0: phân NẰM NGAY trên đất, KHÔNG nẩy lên
       v:per, tier, st:0, t:0, tx:0,ty:0, landed:true, settle:0.32, lucky:!!lucky, jack:!!jack});
   }
 }
@@ -690,7 +690,7 @@ function collectCoin(c, byCollector){
   let v=c.v;
   if(byCollector && Math.random()<G.collectorLucky){ v*=10; toast(t("jackpot")); }
   S.coin+=v; S.totalCoin+=v; S.treeExp+=v;
-  if(!S.set.hideMoney) labels.push({x:c.x,y:c.y,v:v,t:1.15,lucky:c.lucky,jack:c.jack});  // +tiền khi nhặt cứt (vẽ ở toạ độ MÀN HÌNH, cỡ cố định — xem drawLabel)
+  if(!S.set.hideMoney) labels.push({x:c.x,y:c.y,v:v,t:1.15,lucky:c.lucky,jack:c.jack});  // +tiền khi nhặt phân (vẽ ở toạ độ MÀN HÌNH, cỡ cố định — xem drawLabel)
   checkTreeLevel();
 }
 function checkTreeLevel(){
@@ -936,7 +936,7 @@ function hitBoss(d){
   if(boss.hp<=0){
     const reward=humanValue("Commoner")*32*(boss.mini?1:3);   // thưởng hạ boss (giảm so với trước)
     spawnCoins(boss.x,boss.y,reward);
-    S.bossKills=(S.bossKills||0)+1;   // diệt càng nhiều -> boss sau ăn cứt càng nhanh
+    S.bossKills=(S.bossKills||0)+1;   // diệt càng nhiều -> boss sau ăn phân càng nhanh
     toast(t("bossDown"));
     boss=null; humans.forEach(h=>{h.sleep=false;retargetHuman(h);});
     cdBoss=rnd(140,200); showWarn(false); doShake(8);   // giãn cách giữa 2 boss (~2.3–3.3 phút)
@@ -947,7 +947,7 @@ function updateBoss(dt){
   boss.t+=dt; boss.block-=dt;
   if(boss.block<=0){ boss.blocked=!boss.blocked; boss.block=boss.blocked?1.5:4.5; }
   if(boss.eatFlash>0) boss.eatFlash-=dt;
-  // ── Chuột chạy KHẮP MÀN ăn cứt: nhắm cục cứt gần nhất; hết cứt thì lang thang điểm ngẫu nhiên. Diệt càng nhiều -> càng nhanh ──
+  // ── Chuột chạy KHẮP MÀN ăn phân: nhắm cục phân gần nhất; hết phân thì lang thang điểm ngẫu nhiên. Diệt càng nhiều -> càng nhanh ──
   const kills=S.bossKills||0;
   const rush=Math.min(1+kills*0.18, 3.6);                 // +18% tốc độ mỗi lần diệt (trần 3.6x)
   const speed=(boss.mini?80:106)*rush, eatR=boss.mini?36:48;
@@ -955,15 +955,15 @@ function updateBoss(dt){
   for(const c of coins){ if(c.st!==0||!c.landed) continue; const d=dist2(c.x,c.y,boss.x,boss.y); if(d<bd){ bd=d; tgt=c; } }
   let tx,ty;
   if(tgt){ tx=tgt.x; ty=tgt.y; }
-  else {                                                  // không còn cứt -> đi tới điểm lang thang mới khắp màn
+  else {                                                  // không còn phân -> đi tới điểm lang thang mới khắp màn
     if(dist2(boss.x,boss.y,boss.wx,boss.wy)<44*44){ boss.wx=rnd(80,W-80); boss.wy=rnd(70,H-70); }
     tx=boss.wx; ty=boss.wy;
   }
   const dx=tx-boss.x, dy=ty-boss.y, d=Math.hypot(dx,dy)||1;
   if(dx<-3) boss.dir=-1; else if(dx>3) boss.dir=1;        // quay mặt theo hướng đi (đi thẳng, không lùi)
-  const stop=tgt?eatR:8;                                  // ăn cứt: dừng ở tầm ăn · lang thang: đi tới sát điểm (không kẹt vùng chết)
+  const stop=tgt?eatR:8;                                  // ăn phân: dừng ở tầm ăn · lang thang: đi tới sát điểm (không kẹt vùng chết)
   if(d>stop){ boss.x+=dx/d*speed*dt; boss.y+=dy/d*speed*dt; }
-  else if(tgt){                                           // ăn: xoá mọi cục cứt trong tầm (mất tiền người chơi)
+  else if(tgt){                                           // ăn: xoá mọi cục phân trong tầm (mất tiền người chơi)
     for(let i=coins.length-1;i>=0;i--){ const c=coins[i]; if(c.st===0 && c.landed && dist2(c.x,c.y,boss.x,boss.y)<eatR*eatR){ coins.splice(i,1); boss.eatFlash=0.22; } }
   }
   boss.x=clamp(boss.x,60,W-60); boss.y=clamp(boss.y,60,H-60);
@@ -1293,7 +1293,7 @@ function tapAt(p){
   if(best){ knock(best,"click"); fx.push({k:"punch",x:best.x,y:best.y-(isCat()?40:0),t:.25}); doShake(2); }
 }
 cv.addEventListener("mousedown",e=>{ tapAt(worldFromEvent(e)); });
-// ── Cảm ứng (mobile): chạm mèo + kéo ngón tay để quét nhặt cứt ──
+// ── Cảm ứng (mobile): chạm mèo + kéo ngón tay để quét nhặt phân ──
 cv.addEventListener("touchstart",e=>{ if(e.cancelable) e.preventDefault(); const tp=e.touches[0]; if(!tp) return; const p=worldFromEvent(tp); mouse.x=p.x; mouse.y=p.y; mouse.moved=true; tapAt(p); },{passive:false});
 cv.addEventListener("touchmove", e=>{ if(e.cancelable) e.preventDefault(); const tp=e.touches[0]; if(!tp) return; const p=worldFromEvent(tp); mouse.x=p.x; mouse.y=p.y; mouse.moved=true; },{passive:false});
 cv.addEventListener("touchend", ()=>{ mouse.x=-999; mouse.y=-999; });
@@ -1659,10 +1659,10 @@ function applyLang(){
 }
 function renderDoc(){
   document.getElementById("docBody").innerHTML=`
-  <p><b>Fluffy Cats — Idle Clicker</b>. Chạm mèo → mèo giật mình bật lên & rơi ra cục cứt 💩 → rê chuột/kéo tay nhặt cứt = tiền. Mua thêm mèo, nâng cấp, mở cây kỹ năng, đánh boss chuột.</p>
+  <p><b>Fluffy Cats — Idle Clicker</b>. Chạm mèo → mèo giật mình bật lên & rơi ra cục phân 💩 → rê chuột/kéo tay nhặt phân = tiền. Mua thêm mèo, nâng cấp, mở cây kỹ năng, đánh boss chuột.</p>
   <h3>Điều khiển</h3><ul>
-    <li><kbd>Chạm/Click</kbd> vào mèo để nó bật nhảy + rơi ra cục cứt · rê chuột/kéo ngón tay quét qua cứt dưới đất để nhặt</li>
-    <li><kbd>Click</kbd> vào Quà / Kẻ trộm / Boss chuột để tương tác · mua Robot hút bụi để tự nhặt cứt</li>
+    <li><kbd>Chạm/Click</kbd> vào mèo để nó bật nhảy + rơi ra cục phân · rê chuột/kéo ngón tay quét qua phân dưới đất để nhặt</li>
+    <li><kbd>Click</kbd> vào Quà / Kẻ trộm / Boss chuột để tương tác · mua Robot hút bụi để tự nhặt phân</li>
     <li>Cây kỹ năng: kéo để di chuyển, lăn chuột để zoom, click node để mở (click lại để gỡ điểm)</li>
     <li><kbd>Esc</kbd> đóng cửa sổ · thêm <b>?reset</b> vào URL để chơi lại từ đầu</li>
   </ul>
@@ -1670,7 +1670,7 @@ function renderDoc(){
     <li>Mèo: <b>Pet Cats Pack</b> — LuizMelo (CC0)</li>
     <li>Chó: <b>Pet Dogs Pack</b> — LuizMelo (CC0)</li>
     <li>Chuột: <b>RATS!</b> — Micax (free, credit)</li>
-    <li>Cục cứt, robot hút bụi, nền, hiệu ứng, code: tự làm (original)</li>
+    <li>Cục phân, robot hút bụi, nền, hiệu ứng, code: tự làm (original)</li>
   </ul>
   <p style="color:#8b93ab;font-size:12px">Game gốc lấy cảm hứng từ thể loại incremental/idle clicker. Toàn bộ art trong bản này là CC0/miễn phí hoặc tự vẽ.</p>`;
 }
@@ -1680,11 +1680,11 @@ let tutStat={tapped:false};
 let coachI=-1, coachBase=0;
 const COACH=[
  { hl:"#stage",
-   vi:"👆 Chạm vào một chú mèo để nó giật mình & rơi ra cục cứt 💩",
+   vi:"👆 Chạm vào một chú mèo để nó giật mình & rơi ra cục phân 💩",
    en:"👆 Tap a cat to startle it and make it drop poop 💩",
    enter:()=>{ tutStat.tapped=false; }, done:()=> tutStat.tapped },
  { hl:"#stage",
-   vi:"🧹 Rê chuột / kéo ngón tay qua cục cứt dưới đất để nhặt → ra tiền",
+   vi:"🧹 Rê chuột / kéo ngón tay qua cục phân dưới đất để nhặt → ra tiền",
    en:"🧹 Drag the cursor / your finger over the poop on the floor to collect it → coins",
    enter:()=>{ coachBase=S.coin; }, done:()=> S.coin>coachBase },
  { hl:"#tabbar",
@@ -1700,7 +1700,7 @@ const COACH=[
    en:"🌳 This is the Skill Tree — open it to spend points on powerful buffs (when you have some)",
    enter:()=>{}, ok:true },
  { hl:"#stage",
-   vi:"🐀 Khi chuột xuất hiện, chạm để DIỆT nó — kẻo nó ăn hết cứt của bạn! Diệt càng nhiều, chuột sau ăn càng nhanh. Chúc chơi vui! 🎉",
+   vi:"🐀 Khi chuột xuất hiện, chạm để DIỆT nó — kẻo nó ăn hết phân của bạn! Diệt càng nhiều, chuột sau ăn càng nhanh. Chúc chơi vui! 🎉",
    en:"🐀 When a rat appears, tap to KILL it — or it eats your poop! The more you kill, the faster the next one eats. Have fun! 🎉",
    enter:()=>{}, ok:true, last:true },
 ];
