@@ -1372,13 +1372,23 @@ function upgDes(key){
   if(kind==="Speed") return t("Speed",Math.round(next*100));
   return key;
 }
+// Đơn vị đã "được mở" chưa (khớp logic hiện trong shop): mèo đầu luôn mở; mèo bậc sau mở khi sở hữu bậc trước
+function unitRevealed(k){
+  const idx=TIERS.indexOf(k);
+  if(idx===0) return true;
+  if(idx>0) return itemLv(TIERS[idx-1])>=1;
+  if(k==="Elephant") return treeHas("Tree_Elephant_Unlock");   // Chó To mở qua cây kỹ năng
+  return true;                                                  // Chó Becgie, Robot: luôn mở
+}
 function renderUpg(box){
   for(const g of UPG_GROUPS){
-    const unlocked = TIERS.includes(g.n) ? tierUnlocked(g.n) : (g.n==="Elephant"? treeHas("Tree_Elephant_Unlock") : true);
+    const shown = unitRevealed(g.n);                // nâng cấp CHỈ hiện khi đơn vị đó đã ĐƯỢC MỞ
     for(const key of g.keys){
       const el=rowEl(box,"u_"+key);
+      el.style.display = shown ? "" : "none";
+      if(!shown) continue;
       const price=upgPrice(key), lv=upgLv(key), tb=UPG[key];
-      const afford = unlocked && price!==null && S.coin>=price;
+      const afford = price!==null && S.coin>=price;
       if(!el._built){                                // dựng khung 1 LẦN -> nút không bị thay mới -> không nuốt click
         const uic=catShopIcon(g.n)||uiURL("u_"+g.n);
         const ubadge = uic ? `<img class="uicon" src="${uic}">` : `<span class="dot" style="background:${TIER_COL[g.n]||"#22d3ee"}"></span>`;
@@ -1394,7 +1404,7 @@ function renderUpg(box){
         };
         el._built=true;
       }
-      el.classList.toggle("locked",!unlocked);
+      el.classList.remove("locked");
       el._nm.textContent=dispName(g.n)+" · "+key.split("_")[1];
       el._lv.textContent=lv+" / "+(tb.length-1);
       el._des.textContent=upgDes(key);
