@@ -181,7 +181,7 @@ kbd{background:var(--panel2);border:1px solid var(--line);border-radius:4px;padd
   <div class="ovbody"><div class="doc" id="docBody"></div></div>
 </div>
 
-<script src="cat_assets.js?v=13"></script>
+<script src="cat_assets.js?v=14"></script>
 <script>
 "use strict";
 /* ══════════════════════════════════════════════════════════════════════════
@@ -1028,8 +1028,13 @@ function render(){
   // +tiền vẽ Ở TOẠ ĐỘ MÀN HÌNH (cỡ chữ cố định) -> luôn rõ trên mọi màn hình, kể cả mobile zoom nhỏ
   if(!S.set.hideMoney){ const ox=view.ox+sx, oy=view.oy+sy; for(const l of labels) drawLabel(l,ox,oy,view.s); }
 }
+const CATBG_COUNT=5;
 function drawGround(){
-  if(isCat()&&catHas("catbg")){ cx.imageSmoothingEnabled=false; cx.drawImage(CATIMG["catbg"],0,0,W,H); cx.fillStyle="#0b0d1330"; cx.fillRect(0,0,W,H); return; }
+  if(isCat()){
+    const bk="catbg"+((S.rebirths||0)%CATBG_COUNT);        // mỗi lần Chuyển sinh -> nền mới
+    const img = catHas(bk)?CATIMG[bk] : (catHas("catbg")?CATIMG["catbg"]:null);
+    if(img){ cx.imageSmoothingEnabled=false; cx.drawImage(img,0,0,W,H); cx.fillStyle="#0b0d1330"; cx.fillRect(0,0,W,H); return; }
+  }
   const bgk="bg"+S.mapIndex, img=IMG[bgk];
   if(img&&img._ok){
     cx.imageSmoothingEnabled=true;
