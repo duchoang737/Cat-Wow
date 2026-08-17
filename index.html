@@ -181,7 +181,7 @@ kbd{background:var(--panel2);border:1px solid var(--line);border-radius:4px;padd
   <div class="ovbody"><div class="doc" id="docBody"></div></div>
 </div>
 
-<script src="cat_assets.js?v=14"></script>
+<script src="cat_assets.js?v=15"></script>
 <script>
 "use strict";
 /* ══════════════════════════════════════════════════════════════════════════
@@ -783,7 +783,7 @@ function update(dt){
 
   hudTick-=dt; if(hudTick<=0){ hudTick=0.1; updateHUD(); }
   saveTick-=dt; if(saveTick<=0){ saveTick=5; save(); }
-  coachTick();         // hướng dẫn từng bước: kiểm tra hành động để sang bước kế
+  coachTick(dt);       // hướng dẫn từng bước: xong hành động HOẶC quá ~10s thì sang bước kế
   mouse.moved=false;   // reset cuối frame: chỉ nhặt khi con trỏ đang quét qua lông
 }
 let hudTick=0, saveTick=5;
@@ -1696,8 +1696,8 @@ function renderDoc(){
 
 /* ─────────────────────────── HƯỚNG DẪN từng bước (in-game coach) ─────────────────────────── */
 let tutStat={tapped:false};
-const TUT_VERSION=2;   // tăng số này để hiện lại hướng dẫn cho MỌI người sau update (không mất tiến trình)
-let coachI=-1, coachBase=0;
+const TUT_VERSION=3;   // tăng số này để hiện lại hướng dẫn cho MỌI người sau update (không mất tiến trình)
+let coachI=-1, coachBase=0, coachTimer=0;
 const COACH=[
  { hl:"#stage",
    vi:"👆 Chạm vào một chú mèo để nó giật mình & rơi ra cục phân 💩",
@@ -1728,6 +1728,7 @@ function coachText(st){ return lang==="vi"?st.vi:st.en; }
 function coachOkLabel(st){ return lang==="vi"?(st.last?"Bắt đầu chơi 🎉":"Đã hiểu 👍"):(st.last?"Start 🎉":"Got it 👍"); }
 function coachEnter(){
   const st=COACH[coachI];
+  coachTimer=0;
   if(st.enter) st.enter();
   document.getElementById("coachMsg").textContent=coachText(st);
   const ok=document.getElementById("coachOk"); ok.hidden=!st.ok; ok.textContent=coachOkLabel(st);
@@ -1737,7 +1738,13 @@ function coachEnter(){
 function coachStart(){ coachI=0; document.getElementById("coach").classList.add("on"); coachEnter(); }
 function coachStop(){ coachI=-1; document.getElementById("coach").classList.remove("on"); document.querySelectorAll(".tut-hl").forEach(e=>e.classList.remove("tut-hl")); S.set.tutDone=true; S.set.tutVer=TUT_VERSION; save(); }
 function coachNext(){ coachI++; if(coachI>=COACH.length){ coachStop(); return; } coachEnter(); }
-function coachTick(){ if(coachI<0) return; const st=COACH[coachI]; if(st.done && st.done()) coachNext(); }
+function coachTick(dt){
+  if(coachI<0) return;
+  const st=COACH[coachI];
+  coachTimer+=dt||0;
+  if(st.done && st.done()){ coachNext(); return; }     // làm xong hành động -> sang bước ngay
+  if(coachTimer >= (st.ok?15:10)) coachNext();          // hoặc sau ~10s (bước info: 15s) tự sang bước tiếp
+}
 document.getElementById("coachOk").onclick=coachNext;
 document.getElementById("bHelp").onclick=coachStart;
 
