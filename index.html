@@ -64,6 +64,11 @@ canvas#game{display:block;width:100%;height:100%;cursor:none;touch-action:none;-
 .tut-hl{animation:tutHl 1s ease-in-out infinite}
 @keyframes tutHl{0%,100%{box-shadow:0 2px 5px #0007}50%{box-shadow:0 0 0 4px #ffc94aaa,0 0 18px #ffc94a99}}
 @media(max-width:480px){#coach{font-size:13px;bottom:10px;padding:9px 12px}}
+/* ── Tooltip thông tin đơn vị/nâng cấp (rê chuột / chạm) ── */
+#rowTip{position:fixed;display:none;z-index:40;max-width:250px;padding:9px 12px;border-radius:10px;
+  background:#15182af7;border:2px solid #ffc94a;color:#eef0fb;
+  font-size:12.5px;line-height:1.45;box-shadow:0 8px 24px #000b;pointer-events:none}
+#rowTip b{color:#ffd23f;display:block;margin-bottom:3px;font-size:13px}
 #tabtitle{display:flex;align-items:center;justify-content:center;gap:12px;color:#ffd23f;font-size:15px;font-weight:700;text-shadow:0 2px 3px #000}
 #tabtitle .fl{color:#c99a3a;font-size:20px}
 #tabtitle .fl.fr{transform:scaleX(-1)}
@@ -180,6 +185,8 @@ kbd{background:var(--panel2);border:1px solid var(--line);border-radius:4px;padd
   <div class="ovhead"><h2>Về game</h2><button class="btn" id="bDocClose" style="margin-left:auto">✕</button></div>
   <div class="ovbody"><div class="doc" id="docBody"></div></div>
 </div>
+
+<div id="rowTip"></div>
 
 <script src="cat_assets.js?v=16"></script>
 <script>
@@ -578,6 +585,39 @@ const CATNAME={
   en:{Commoner:"Alley Cat",Clown:"Calico",Soldier:"Grey Tabby",Noble:"Black Cat",Knight:"Tuxedo",King:"Royal Cat",Bull:"Saint Bernard",Elephant:"Big Dog",Collector:"Vacuum Bot"}
 };
 const dispName=k=>{ if(isCat()&&CATNAME[lang]&&CATNAME[lang][k]) return CATNAME[lang][k]; return t(k); };
+// Mô tả "làm gì" cho từng đơn vị (hiện khi rê chuột / chạm giữ)
+const UNIT_DESC={
+  vi:{
+    Commoner:"Mèo cơ bản. Chạm để nó giật mình rơi ra phân — kéo chuột/ngón tay qua phân để nhặt lấy tiền.",
+    Clown:"Rơi ra phân giá trị cao hơn Mèo Hoang.",
+    Soldier:"Rơi ra phân giá trị cao hơn Mèo Tam Thể.",
+    Noble:"Rơi ra phân giá trị cao.",
+    Knight:"Rơi ra phân giá trị rất cao.",
+    King:"Mèo cao cấp nhất — phân giá trị cực cao.",
+    Bull:"Chó Becgie: lấy đà rồi chạy thẳng, làm cả hàng mèo trên đường giật mình rơi phân — tự động, khỏi cần chạm.",
+    Elephant:"Chó To: chạy mạnh và tầm rộng hơn, làm nhiều mèo giật mình hơn.",
+    Collector:"Robot hút bụi: tự đi hút những cục phân mèo thải ra và đổi thành tiền giúp bạn — khỏi cần nhặt tay.",
+  },
+  en:{
+    Commoner:"Basic cat. Tap it to startle it and drop poop — drag over the poop to collect coins.",
+    Clown:"Drops higher-value poop than the Alley Cat.",
+    Soldier:"Drops higher-value poop than the Calico.",
+    Noble:"Drops high-value poop.",
+    Knight:"Drops very high-value poop.",
+    King:"Top-tier cat — extremely valuable poop.",
+    Bull:"Saint Bernard: charges in a straight line, startling a whole row of cats into dropping poop — automatic.",
+    Elephant:"Big Dog: charges harder and wider, startling more cats.",
+    Collector:"Robot Vacuum: roams and sucks up the poop the cats leave behind, turning it into money — no manual collecting.",
+  }
+};
+const UPG_KIND_DESC={
+  vi:{ BaseValue:"Tăng giá trị phân cơ bản của đơn vị này.", ValueBonus:"Tăng % giá trị phân của đơn vị này.",
+       Clumsy:"Mỗi 10s đơn vị này có % tự giật mình rơi phân (không cần chạm).", Energy:"Chó chạy lâu hơn / hồi sức nhanh hơn.",
+       Size:"Tăng kích thước & tầm càn quét của chó.", Radius:"Tăng bán kính hút phân của robot.", Speed:"Tăng tốc độ di chuyển của robot." },
+  en:{ BaseValue:"Increase this unit's base poop value.", ValueBonus:"Increase this unit's poop value %.",
+       Clumsy:"Every 10s this unit has a % chance to self-startle and drop poop.", Energy:"The dog runs longer / recovers faster.",
+       Size:"Increase the dog's size and sweep range.", Radius:"Increase the robot's poop-suction radius.", Speed:"Increase the robot's movement speed." }
+};
 const CATMAP={Commoner:1, Clown:3, Soldier:4, Noble:2, Knight:6, King:5}; // bậc -> mèo (King=trắng xù, Noble=đen)
 function catShopIcon(k){
   if(!isCat()||!window.CAT) return null;
@@ -1340,6 +1380,20 @@ function buyItem(s){
   humans.forEach(h=>{if(!h.tx)retargetHuman(h);});
   updateHUD(); save();
 }
+const rowTip=document.getElementById("rowTip");
+function showRowTip(html,x,y){
+  rowTip.innerHTML=html; rowTip.style.display="block";
+  const w=rowTip.offsetWidth, h=rowTip.offsetHeight;
+  rowTip.style.left=Math.max(6,Math.min(x-w/2,innerWidth-w-6))+"px";
+  rowTip.style.top=Math.max(6,y-h-14)+"px";
+}
+function hideRowTip(){ rowTip.style.display="none"; }
+function attachInfo(el,getDesc){                       // hiện thông tin khi RÊ CHUỘT hoặc CHẠM (trừ nút Mua)
+  el.addEventListener("mouseenter",e=>showRowTip(getDesc(),e.clientX,e.clientY));
+  el.addEventListener("mousemove",e=>{ if(rowTip.style.display==="block") showRowTip(getDesc(),e.clientX,e.clientY); });
+  el.addEventListener("mouseleave",hideRowTip);
+  el.addEventListener("touchstart",e=>{ if(e.target.closest && e.target.closest("button")) return; const tp=e.touches[0]; if(!tp) return; showRowTip(getDesc(),tp.clientX,tp.clientY); clearTimeout(rowTip._t); rowTip._t=setTimeout(hideRowTip,3200); },{passive:true});
+}
 function renderItems(box){
   for(const s of SHOP){
     const el=rowEl(box,"i_"+s.k);
@@ -1360,6 +1414,7 @@ function renderItems(box){
         <div class="rowfoot"><button class="btn buy"></button></div>`;
       el._nm=el.querySelector(".nm"); el._lv=el.querySelector(".lv"); el._des=el.querySelector(".rowdes"); el._btn=el.querySelector("button");
       el._btn.onclick=()=>buyItem(s);
+      attachInfo(el, ()=> "<b>"+dispName(s.k)+"</b>"+(UNIT_DESC[lang][s.k]||""));
       el._built=true;
     }
     el.classList.toggle("locked",!unlocked);
@@ -1420,6 +1475,7 @@ function renderUpg(box){
           if(key.startsWith("Bull")||key.startsWith("Elephant")) animals.forEach(a=>{ if(a.kind===key.split("_")[0]){ a.max=BASE.animalEnergy+upgVal(a.kind+"_Energy"); a.scale=1+upgVal(a.kind+"_Size"); } });
           updateHUD(); save();
         };
+        attachInfo(el, ()=>{ const kind=key.split("_")[1]; return "<b>"+dispName(g.n)+" · "+(KINDLABEL[lang][kind]||kind)+"</b>"+(UPG_KIND_DESC[lang][kind]||""); });
         el._built=true;
       }
       el.classList.remove("locked");
